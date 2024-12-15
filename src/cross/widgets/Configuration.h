@@ -77,6 +77,7 @@ public:
     void saveWindowGeometry(QWidget* window);
 
     void zoomFont(const QString & fontName, QWheelEvent* event);
+    QFont monospaceFont() const;
 
     //default setting maps
     QMap<QString, QColor> defaultColors;
@@ -91,6 +92,7 @@ public:
     QMap<QString, QMap<QString, duint>> Uints;
     QMap<QString, QFont> Fonts;
     QMap<QString, Shortcut> Shortcuts;
+    QVector<QFont> EmbeddedFonts;
 
     //custom menu maps
     struct MenuMap
@@ -136,4 +138,13 @@ private:
 
     mutable bool noMoreMsgbox;
     QMap<QString, int> mZoomFontDelta;
+
+#ifdef Q_OS_DARWIN
+    int PlatformFontWeight = 13;
+#elif defined(Q_OS_WIN)
+    int PlatformFontWeight = 8;
+#else
+    int PlatformFontWeight = 13;
+#endif // Q_OS_DARWIN
+
 };
