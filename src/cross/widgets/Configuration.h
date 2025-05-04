@@ -34,12 +34,12 @@ struct ConfigurationPalette
     QColor darkGrey = ("#808080"); // separator
     QColor mediumGrey = ("#717171");
     QColor lightGrey = ("#C0C0C0"); // header/selection
-    QColor lighterGrey =("#EEEEEE");
-    QColor background =("#FFF8F0");
-    QColor black =("#000000"); // text
-    QColor white =("#FFFFFF");
-    QColor red =("#FF0000");
-    QColor bookmark =("#FEE970");
+    QColor lighterGrey = ("#EEEEEE");
+    QColor background = ("#FFF8F0");
+    QColor black = ("#000000"); // text
+    QColor white = ("#FFFFFF");
+    QColor red = ("#FF0000");
+    QColor bookmark = ("#FEE970");
 };
 
 class Configuration : public QObject
@@ -61,7 +61,7 @@ public:
     };
 
     //Functions
-    explicit Configuration(const ConfigurationPalette& p);
+    explicit Configuration(const ConfigurationPalette & p);
     static Configuration* instance();
     void load();
     void save();
@@ -157,7 +157,7 @@ private:
 #ifdef Q_OS_DARWIN
     int PlatformFontWeight = 13;
 #elif defined(Q_OS_WIN)
-    int PlatformFontWeight = 8;
+    int PlatformFontWeight = 10;
 #else
     int PlatformFontWeight = 13;
 #endif // Q_OS_DARWIN
