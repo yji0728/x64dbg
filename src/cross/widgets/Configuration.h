@@ -29,6 +29,19 @@ class MenuBuilder;
 class QAction;
 class QWheelEvent;
 
+struct ConfigurationPalette
+{
+    QColor darkGrey = ("#808080"); // separator
+    QColor mediumGrey = ("#717171");
+    QColor lightGrey = ("#C0C0C0"); // header/selection
+    QColor lighterGrey =("#EEEEEE");
+    QColor background =("#FFF8F0");
+    QColor black =("#000000"); // text
+    QColor white =("#FFFFFF");
+    QColor red =("#FF0000");
+    QColor bookmark =("#FEE970");
+};
+
 class Configuration : public QObject
 {
     Q_OBJECT
@@ -48,7 +61,7 @@ public:
     };
 
     //Functions
-    Configuration();
+    explicit Configuration(const ConfigurationPalette& p);
     static Configuration* instance();
     void load();
     void save();
