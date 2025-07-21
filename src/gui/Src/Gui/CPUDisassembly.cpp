@@ -721,7 +721,7 @@ void CPUDisassembly::setupRightClickContextMenu()
         return text != mHighlightToken.text;
     });
 
-    mMenuBuilder->loadFromConfig();
+    mMenuBuilder->loadFromConfig("CPUDisassemblyV2");
 }
 
 void CPUDisassembly::gotoOriginSlot()
