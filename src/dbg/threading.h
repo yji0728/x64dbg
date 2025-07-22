@@ -75,6 +75,8 @@ enum SectionLock
     LockFormatFunctions,
     LockDllBreakpoints,
     LockHandleCache,
+    LockScriptLineMap,
+    LockScriptBreakpoints,
 
     // Number of elements in this enumeration. Must always be the last index.
     LockLast
@@ -254,6 +256,12 @@ protected:
 private:
     using Internal = SectionLockerGlobal;
 };
+
+template <SectionLock LockIndex, bool ProcessGuiEvents = false>
+using SharedSectionLocker = SectionLocker<LockIndex, true, ProcessGuiEvents>;
+
+template <SectionLock LockIndex, bool ProcessGuiEvents = false>
+using ExclusiveSectionLocker = SectionLocker<LockIndex, false, ProcessGuiEvents>;
 
 struct TLSData
 {

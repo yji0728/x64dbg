@@ -102,6 +102,7 @@ static bool bAbortStepping = false;
 static TITANCBSTEP gStepIntoPartyCallback;
 HANDLE hDebugLoopThread = nullptr;
 DWORD dwDebugFlags = 0;
+std::atomic_bool bIsDebugging;
 
 static duint dbgcleartracestate()
 {
@@ -182,7 +183,7 @@ static DWORD WINAPI memMapThread(void* ptr)
 {
     while(!bStopMemMapThread)
     {
-        while(!DbgIsDebugging())
+        while(!bIsDebugging)
         {
             if(bStopMemMapThread)
                 break;
@@ -214,7 +215,7 @@ static DWORD WINAPI timeWastedCounterThread(void* ptr)
     GuiUpdateTimeWastedCounter();
     while(!bStopTimeWastedCounterThread)
     {
-        while(!DbgIsDebugging() || isUserIdle())
+        while(!bIsDebugging || isUserIdle())
         {
             if(bStopTimeWastedCounterThread)
                 break;
@@ -234,7 +235,7 @@ static DWORD WINAPI dumpRefreshThread(void* ptr)
 {
     while(!bStopDumpRefreshThread)
     {
-        while(!DbgIsDebugging())
+        while(!bIsDebugging)
         {
             if(bStopDumpRefreshThread)
                 break;
@@ -479,7 +480,7 @@ void updateSEHChainAsync()
 
 static void DebugUpdateTitle(duint disasm_addr, bool analyzeThreadSwitch)
 {
-    if(GuiIsUpdateDisabled() || !DbgIsDebugging())
+    if(GuiIsUpdateDisabled() || !bIsDebugging)
         return;
 
     char modname[MAX_MODULE_SIZE] = "";
@@ -1714,22 +1715,12 @@ static DWORD WINAPI cbInitializationScriptThread(void*)
     Memory<char*> script(MAX_SETTING_SIZE + 1);
     if(BridgeSettingGet("Engine", "InitializeScript", script())) // Global script file
     {
-        if(scriptLoadSync(script()))
-        {
-            if(scriptRunSync(0, true))
-                scriptunload();
-        }
-        else
+        if(!ScriptExecAwait(script()))
             dputs(QT_TRANSLATE_NOOP("DBG", "Error: Cannot load global initialization script."));
     }
     if(szDebuggeeInitializationScript[0] != 0)
     {
-        if(scriptLoadSync(szDebuggeeInitializationScript))
-        {
-            if(scriptRunSync(0, true))
-                scriptunload();
-        }
-        else
+        if(!ScriptExecAwait(szDebuggeeInitializationScript))
             dputs(QT_TRANSLATE_NOOP("DBG", "Error: Cannot load debuggee initialization script."));
     }
     return 0;
@@ -2964,6 +2955,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     WatchClear();
     TraceRecord.clear();
     TraceRecord.enableTraceRecording(false, nullptr); // Stop trace recording
+    bIsDebugging = false;
     GuiSetDebugState(stopped);
     GuiUpdateAllViews();
     dputs(QT_TRANSLATE_NOOP("DBG", "Debugging stopped!"));
@@ -3030,7 +3022,10 @@ void dbgcreatedebugthread(INIT_STRUCT* init)
     hDebugLoopThread = CreateThread(nullptr, 0, [](LPVOID lpParameter) -> DWORD
     {
         auto init = (INIT_STRUCT*)lpParameter;
+
+        bIsDebugging = true;
         debugLoopFunction(init);
+        bIsDebugging = false;
 
         // Set the event in case debugLoopFunction returned early to prevent a deadlock
         if(init->event)
@@ -3038,6 +3033,7 @@ void dbgcreatedebugthread(INIT_STRUCT* init)
             SetEvent(init->event);
             init->event = nullptr;
         }
+
         return 0;
     }, init, 0, nullptr);
     WaitForSingleObject(event, INFINITE);
