@@ -27,7 +27,11 @@ struct TranslatedStringStorage
 {
     char Data[4096];
 };
+#if (_WIN32_WINNT >= 0x0600)
+extern thread_local TranslatedStringStorage TLS_TranslatedString;
+#else
 extern std::map<DWORD, TranslatedStringStorage>* TLS_TranslatedStringMap;
+#endif // _WIN32_WINNT >= 0x0600
 
 #if QT_VERSION >= QT_VERSION_CHECK(5,0,0)
 class MyEventFilter : public QAbstractNativeEventFilter
