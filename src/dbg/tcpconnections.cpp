@@ -4,7 +4,6 @@
 #if (_WIN32_WINNT >= 0x0600)
 #include <iphlpapi.h>
 #pragma comment(lib, "iphlpapi.lib")
-#endif // _WIN32_WINNT >= 0x0600
 
 static const char* TcpStateToString(unsigned int State)
 {
@@ -38,6 +37,8 @@ static const char* TcpStateToString(unsigned int State)
         return "UNKNOWN";
     }
 }
+#endif // _WIN32_WINNT >= 0x0600
+
 
 bool TcpEnumConnections(duint pid, std::vector<TCPCONNECTIONINFO> & connections)
 {

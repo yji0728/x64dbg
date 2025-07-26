@@ -51,20 +51,8 @@ void waitdeinitialize()
 
 bool SectionLockerGlobal::m_Initialized = false;
 
-#if (_WIN32_WINNT < 0x0600)
-bool SectionLockerGlobal::m_SRWLocks = false;
-SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_InitializeSRWLock;
-SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_AcquireSRWLockShared;
-SectionLockerGlobal::TRYSRWLOCKFUNCTION SectionLockerGlobal::m_TryAcquireSRWLockShared;
-SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_AcquireSRWLockExclusive;
-SectionLockerGlobal::TRYSRWLOCKFUNCTION SectionLockerGlobal::m_TryAcquireSRWLockExclusive;
-SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_ReleaseSRWLockShared;
-SectionLockerGlobal::SRWLOCKFUNCTION SectionLockerGlobal::m_ReleaseSRWLockExclusive;
-
 CacheAligned<CRITICAL_SECTION> SectionLockerGlobal::m_crLocks[SectionLock::LockLast];
-#else
 CacheAligned<SRWLOCK> SectionLockerGlobal::m_srwLocks[SectionLock::LockLast];
-#endif // _WIN32_WINNT < 0x0600
 SectionLockerGlobal::owner_info SectionLockerGlobal::m_exclusiveOwner[SectionLock::LockLast];
 DWORD SectionLockerGlobal::m_guiMainThreadId;
 

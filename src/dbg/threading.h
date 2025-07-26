@@ -190,11 +190,8 @@ private:
 
     struct DBG_ALIGNAS(64) owner_info { DWORD threadId; size_t count; };
     static owner_info m_exclusiveOwner[SectionLock::LockLast];
-#if (_WIN32_WINNT >= 0x0600)
     static CacheAligned<SRWLOCK> m_srwLocks[SectionLock::LockLast];
-#else
     static CacheAligned<CRITICAL_SECTION> m_crLocks[SectionLock::LockLast];
-#endif // _WIN32_WINNT >= 0x0600
     static DWORD m_guiMainThreadId;
 };
 
