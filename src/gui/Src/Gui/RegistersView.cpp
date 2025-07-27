@@ -1441,6 +1441,7 @@ RegistersView::RegistersView(QWidget* parent) : QScrollArea(parent), mVScrollOff
     connect(wCM_CopySymbolToClipboard, SIGNAL(triggered()), this, SLOT(onCopySymbolToClipboardAction()));
     connect(wCM_CopyAll, SIGNAL(triggered()), this, SLOT(onCopyAllAction()));
     connect(wCM_ChangeFPUView, SIGNAL(triggered()), this, SLOT(onChangeFPUViewAction()));
+    connect(Config(), SIGNAL(shortcutsUpdated()), this, SLOT(refreshShortcutsSlot()));
 
     memset(&mRegDumpStruct, 0, sizeof(REGDUMP));
     memset(&mCipRegDumpStruct, 0, sizeof(REGDUMP));
