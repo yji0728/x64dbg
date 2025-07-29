@@ -856,7 +856,7 @@ void HexDump::getColumnRichText(duint col, duint rva, RichTextPainter::List & ri
                         auto ptr = *(duint*)(data + i * byteCount);
                         if((spaceData.underline = curData.underline = DbgMemIsValidReadPtr(ptr)))
                         {
-                            auto codePage = DbgFunctions()->MemIsCodePage(ptr, false);
+                            auto codePage = DbgFunctions()->MemIsCodePage(ptr, true);
                             auto modbase = DbgFunctions()->ModBaseFromAddr(ptr);
                             if(modbase)
                             {
