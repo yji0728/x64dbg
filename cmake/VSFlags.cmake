@@ -16,6 +16,8 @@ if(MSVC)
         $<$<CONFIG:Release,MinSizeRel,RelWithDebInfo>:/OPT:REF>
         $<$<CONFIG:Release,MinSizeRel,RelWithDebInfo>:/OPT:ICF>
     )
+    # Enable big objects (unity build)
+    add_compile_options(/bigobj)
 endif()
 
 # Make the project look nicer in IDEs

@@ -2079,20 +2079,6 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
     }
 }
 
-static bool dbgdetachDisableAllBreakpoints(const BREAKPOINT* bp)
-{
-    if(bp->enabled)
-    {
-        if(bp->type == BPNORMAL)
-            DeleteBPX(bp->addr);
-        else if(bp->type == BPMEMORY)
-            RemoveMemoryBPX(bp->addr, 0);
-        else if(bp->type == BPHARDWARE && TITANDRXVALID(bp->titantype))
-            DeleteHardwareBreakPoint(TITANGETDRX(bp->titantype));
-    }
-    return true;
-}
-
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
     hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);

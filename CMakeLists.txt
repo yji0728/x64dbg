@@ -407,6 +407,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${dbg_SOURCES})
 
 target_compile_definitions(dbg PRIVATE
 	BUILD_DBG
+	NOMINMAX
 )
 
 target_include_directories(dbg PRIVATE

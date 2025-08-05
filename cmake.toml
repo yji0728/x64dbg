@@ -128,6 +128,7 @@ x64.private-link-libraries = [
 ]
 private-compile-definitions = [
     "BUILD_DBG",
+    "NOMINMAX",
 ]
 private-include-directories = [
     "src/dbg",
