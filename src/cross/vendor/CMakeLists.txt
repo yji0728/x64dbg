@@ -12,12 +12,12 @@ include(FetchContent)
 if(POLICY CMP0135)
 	cmake_policy(SET CMP0135 NEW)
 endif()
-message(STATUS "Fetching PatternLanguage (0b850bfa62670bd4d6ddc5b81218233f193946b8)...")
+message(STATUS "Fetching PatternLanguage (3e98b047c52c07bb1816bd0936f561ce7797469d)...")
 FetchContent_Declare(PatternLanguage
 	GIT_REPOSITORY
 		"https://github.com/WerWolv/PatternLanguage"
 	GIT_TAG
-		0b850bfa62670bd4d6ddc5b81218233f193946b8
+		3e98b047c52c07bb1816bd0936f561ce7797469d
 )
 FetchContent_MakeAvailable(PatternLanguage)
 

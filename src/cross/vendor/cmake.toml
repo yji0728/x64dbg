@@ -10,4 +10,4 @@ include-directories = ["linux-pe"]
 
 [fetch-content.PatternLanguage]
 git = "https://github.com/WerWolv/PatternLanguage"
-tag = "0b850bfa62670bd4d6ddc5b81218233f193946b8"
+tag = "3e98b047c52c07bb1816bd0936f561ce7797469d"
