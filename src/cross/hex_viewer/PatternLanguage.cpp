@@ -201,7 +201,7 @@ private:
         return m_args->visit(m_args->userdata, treeTop(), &info);
     }
 
-    static std::string readFormatter(const ptrn::Pattern* pattern)
+    static std::string readFormatter(ptrn::Pattern* pattern)
     {
         if(const auto & functionName = pattern->getReadFormatterFunction(); !functionName.empty())
         {
@@ -213,7 +213,7 @@ private:
         }
     }
 
-    void formatValue(const ptrn::Pattern* pattern)
+    void formatValue(ptrn::Pattern* pattern)
     {
         if(pattern->getVisibility() == ptrn::Visibility::Hidden) return;
         if(pattern->getVisibility() == ptrn::Visibility::TreeHidden) return;
@@ -249,7 +249,7 @@ private:
         apiVisit("formatValue", pattern, value);
     }
 
-    void formatString(const ptrn::Pattern* pattern)
+    void formatString(ptrn::Pattern* pattern)
     {
         if(pattern->getVisibility() == ptrn::Visibility::Hidden) return;
         if(pattern->getVisibility() == ptrn::Visibility::TreeHidden) return;
