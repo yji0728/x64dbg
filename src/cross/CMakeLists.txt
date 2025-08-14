@@ -161,6 +161,42 @@ if(NOT CMKR_VS_STARTUP_PROJECT)
 	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT struct_viewer)
 endif()
 
+# Target: release_notes
+set(release_notes_SOURCES
+	cmake.toml
+	"release_notes/ImageTextBrowser.cpp"
+	"release_notes/ImageTextBrowser.h"
+	"release_notes/ReleaseNotesDialog.cpp"
+	"release_notes/ReleaseNotesDialog.h"
+	"release_notes/ReleaseNotesDialog.ui"
+	"release_notes/main.cpp"
+)
+
+qt_executable(release_notes ${release_notes_SOURCES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${release_notes_SOURCES})
+
+target_compile_features(release_notes PRIVATE
+	cxx_std_20
+)
+
+target_include_directories(release_notes PRIVATE
+	release_notes
+)
+
+if(NOT TARGET md4c-html)
+	message(FATAL_ERROR "Target \"md4c-html\" referenced by \"release_notes\" does not exist!")
+endif()
+
+target_link_libraries(release_notes PRIVATE
+	Qt::Widgets
+	md4c-html
+)
+
+get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
+if(NOT CMKR_VS_STARTUP_PROJECT)
+	set_property(DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT release_notes)
+endif()
+
 # Target: hex_viewer
 set(hex_viewer_SOURCES
 	cmake.toml

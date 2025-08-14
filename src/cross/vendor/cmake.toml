@@ -11,3 +11,9 @@ include-directories = ["linux-pe"]
 [fetch-content.PatternLanguage]
 git = "https://github.com/WerWolv/PatternLanguage"
 tag = "3e98b047c52c07bb1816bd0936f561ce7797469d"
+
+# https://github.com/mity/md4c/commit/481fbfbdf72daab2912380d62bb5f2187d438408
+[target.md4c-html]
+type = "static"
+sources = ["md4c/*.c", "md4c/*.h"]
+include-directories = ["md4c"]

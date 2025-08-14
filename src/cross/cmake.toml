@@ -61,6 +61,19 @@ link-libraries = [
     "btparser",
 ]
 
+[target.release_notes]
+type = "qt_executable"
+sources = [
+    "release_notes/*.cpp",
+    "release_notes/*.h",
+    "release_notes/*.ui",
+]
+include-directories = ["release_notes"]
+link-libraries = [
+    "Qt::Widgets",
+    "::md4c-html",
+]
+
 [target.hex_viewer]
 type = "qt_executable"
 sources = [
