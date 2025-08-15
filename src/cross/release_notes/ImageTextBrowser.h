@@ -10,8 +10,8 @@ public:
     explicit ImageTextBrowser(QWidget* parent = nullptr);
 
 protected:
-    QVariant loadResource(int type, const QUrl& name) override;
-    void resizeEvent(QResizeEvent *event) override;
+    QVariant loadResource(int type, const QUrl & name) override;
+    void resizeEvent(QResizeEvent* event) override;
 
 private:
     QTimer* mResizeTimer = nullptr;

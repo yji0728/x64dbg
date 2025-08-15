@@ -188,7 +188,6 @@ if(NOT TARGET md4c-html)
 endif()
 
 target_link_libraries(release_notes PRIVATE
-	Qt::Widgets
 	md4c-html
 )
 

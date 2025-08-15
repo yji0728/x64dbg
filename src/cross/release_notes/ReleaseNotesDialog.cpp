@@ -3,14 +3,14 @@
 
 #include <md4c-html.h>
 
-static QString fixupHtmlEmojiBug(const QString& html)
+static QString fixupHtmlEmojiBug(const QString & html)
 {
     // For some reason surrogates do not always display correctly in HTML elements.
     // As a workaround we add a zero-width space in front of the high surrogate.
     QString result;
-    auto size = html.size();
+    int size = html.size();
     result.reserve(size);
-    for(qsizetype i = 0; i < size; i++)
+    for(int i = 0; i < size; i++)
     {
         auto ch = html[i];
         if(ch.isHighSurrogate() && i + 1 < size)
@@ -22,9 +22,9 @@ static QString fixupHtmlEmojiBug(const QString& html)
     return result;
 }
 
-static QString markdownToHtml(const QByteArray& markdown)
+static QString markdownToHtml(const QByteArray & markdown)
 {
-    auto appendString = [](const MD_CHAR* text, MD_SIZE size, void* userdata)
+    auto appendString = [](const MD_CHAR * text, MD_SIZE size, void* userdata)
     {
         ((std::string*)userdata)->append(text, size);
     };
@@ -46,7 +46,7 @@ static QString markdownToHtml(const QByteArray& markdown)
     return QString::fromStdString(html);
 }
 
-ReleaseNotesDialog::ReleaseNotesDialog(const QByteArray& markdown, QWidget *parent)
+ReleaseNotesDialog::ReleaseNotesDialog(const QByteArray & markdown, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::ReleaseNotesDialog)
 {

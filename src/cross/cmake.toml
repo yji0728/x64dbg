@@ -70,7 +70,6 @@ sources = [
 ]
 include-directories = ["release_notes"]
 link-libraries = [
-    "Qt::Widgets",
     "::md4c-html",
 ]
 

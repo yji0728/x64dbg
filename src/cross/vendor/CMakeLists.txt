@@ -6,6 +6,9 @@ if(CMKR_ROOT_PROJECT)
 	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS cmake.toml)
 endif()
 
+# Variables
+set(LIBWOLV_ENABLE_TESTS OFF)
+
 include(FetchContent)
 
 # Fix warnings about DOWNLOAD_EXTRACT_TIMESTAMP

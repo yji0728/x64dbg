@@ -8,6 +8,9 @@ include-directories = ["linux-pe"]
 
 [subdir.btparser]
 
+[variables]
+LIBWOLV_ENABLE_TESTS = false
+
 [fetch-content.PatternLanguage]
 git = "https://github.com/WerWolv/PatternLanguage"
 tag = "3e98b047c52c07bb1816bd0936f561ce7797469d"

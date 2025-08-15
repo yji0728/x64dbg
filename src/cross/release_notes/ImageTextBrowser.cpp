@@ -1,8 +1,9 @@
 #include "ImageTextBrowser.h"
 
+#include <QDebug>
 #include <QResizeEvent>
 
-ImageTextBrowser::ImageTextBrowser(QWidget *parent)
+ImageTextBrowser::ImageTextBrowser(QWidget* parent)
     : QTextBrowser(parent)
     , mResizeTimer(new QTimer(this))
 {
@@ -15,7 +16,7 @@ ImageTextBrowser::ImageTextBrowser(QWidget *parent)
     });
 }
 
-QVariant ImageTextBrowser::loadResource(int type, const QUrl &name)
+QVariant ImageTextBrowser::loadResource(int type, const QUrl & name)
 {
     auto url = name.toString();
     if(url.startsWith("http"))
@@ -40,7 +41,7 @@ QVariant ImageTextBrowser::loadResource(int type, const QUrl &name)
     return QTextBrowser::loadResource(type, name);
 }
 
-void ImageTextBrowser::resizeEvent(QResizeEvent *event)
+void ImageTextBrowser::resizeEvent(QResizeEvent* event)
 {
     if(event->size() != event->oldSize())
     {
