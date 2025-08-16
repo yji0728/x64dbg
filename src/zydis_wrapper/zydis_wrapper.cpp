@@ -5,6 +5,7 @@
 #include "zydis_wrapper.h"
 #include <algorithm>
 #include <stdexcept>
+#include <cstring>
 
 static const char* ZydisMnemonicGetStringHook(ZydisMnemonic mnemonic)
 {
