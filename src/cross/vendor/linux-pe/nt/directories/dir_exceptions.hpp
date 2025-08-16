@@ -33,7 +33,7 @@
 #include "../../img_common.hpp"
 #include "../data_directories.hpp"
 
-#pragma pack(push, WIN_STRUCT_PACKING)
+WIN_STRUCT_PACKING
 namespace win
 {
 	using xmm_t = std::array<uint64_t, 2>;
@@ -403,7 +403,7 @@ namespace win
 		// call reg rel
 		if ( call_region[ 6 ] == 0xFF && ( call_region[ 7 ] & 0xF0 ) == 0x40 )
 			state.ip() -= 7;
-		if ( call_region[ 6 ] == 0xFF )
+		else if ( call_region[ 6 ] == 0xFF )
 			state.ip() -= 6;
 		// call imm
 		else if ( call_region[ 5 ] == 0xE8 )
