@@ -1199,7 +1199,8 @@ void HexDump::wordToString(duint rva, uint16_t word, WordViewMode mode, RichText
 
     case HalfFloatWord:
     {
-        str = ToFloatingString<qfloat16>(&word, 3);
+        auto value = (float)*(const qfloat16*)&word;
+        str = ToFloatingString<float>(&value, 3);
     }
     break;
 
