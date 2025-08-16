@@ -6,8 +6,6 @@ include-directories = ["cpp-httplib"]
 type = "interface"
 include-directories = ["linux-pe"]
 
-[subdir.btparser]
-
 [variables]
 LIBWOLV_ENABLE_TESTS = false
 
