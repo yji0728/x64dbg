@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QCheckBox>
 #include <QSpacerItem>
+#include <cinttypes>
 
 struct PatternVisitor
 {
@@ -71,7 +72,7 @@ struct PatternVisitor
         td.userdata = this;
         void* node = nullptr;
         emit Bridge::getBridge()->typeAddNode(parent, &td, &node);
-        printf("[%p->%p] %s %s |%s| (address: 0x%llX, size: 0x%llX, line: %d)\n",
+        printf("[%p->%p] %s %s |%s| (address: 0x%" PRIX64 ", size: 0x%" PRIX64 ", line: %d)\n",
                parent,
                node,
                info.type_name,

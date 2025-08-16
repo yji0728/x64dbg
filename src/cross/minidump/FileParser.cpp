@@ -223,8 +223,8 @@ struct PeFileParser : FileParser, MemoryProvider
 
             mDisasm64 = true;
 
-            auto sectionAlignment = pnth->optional_header.section_alignment;
-            auto fileAlignment = pnth->optional_header.file_alignment;
+            duint sectionAlignment = pnth->optional_header.section_alignment;
+            duint fileAlignment = pnth->optional_header.file_alignment;
             if(sectionAlignment > PAGE_SIZE)
                 sectionAlignment = PAGE_SIZE;
             mImageBase = pnth->optional_header.image_base;

@@ -64,10 +64,10 @@ struct MD_HTML_tag {
  ***  HTML rendering helper functions  ***
  *****************************************/
 
-#define ISDIGIT(ch)     ('0' <= (ch) && (ch) <= '9')
-#define ISLOWER(ch)     ('a' <= (ch) && (ch) <= 'z')
-#define ISUPPER(ch)     ('A' <= (ch) && (ch) <= 'Z')
-#define ISALNUM(ch)     (ISLOWER(ch) || ISUPPER(ch) || ISDIGIT(ch))
+#define HTML_ISDIGIT(ch)     ('0' <= (ch) && (ch) <= '9')
+#define HTML_ISLOWER(ch)     ('a' <= (ch) && (ch) <= 'z')
+#define HTML_ISUPPER(ch)     ('A' <= (ch) && (ch) <= 'Z')
+#define HTML_ISALNUM(ch)     (HTML_ISLOWER(ch) || HTML_ISUPPER(ch) || HTML_ISDIGIT(ch))
 
 
 static inline void
@@ -549,7 +549,7 @@ md_html(const MD_CHAR* input, MD_SIZE input_size,
         if(strchr("\"&<>", ch) != NULL)
             render.escape_map[i] |= NEED_HTML_ESC_FLAG;
 
-        if(!ISALNUM(ch)  &&  strchr("~-_.+!*(),%#@?=;:/,+$", ch) == NULL)
+        if(!HTML_ISALNUM(ch)  &&  strchr("~-_.+!*(),%#@?=;:/,+$", ch) == NULL)
             render.escape_map[i] |= NEED_URL_ESC_FLAG;
     }
 

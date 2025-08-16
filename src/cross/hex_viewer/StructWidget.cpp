@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include <QTextDocumentFragment>
 #include <QMessageBox>
+#include <cinttypes>
 
 #include "StructWidget.h"
 #include "ui_StructWidget.h"
@@ -181,7 +182,7 @@ void StructWidget::typeUpdateWidget()
             {
                 if(type.type.reverse)
                     std::reverse((char*)data, (char*)data + (type.type.sizeBits / 8));
-                valueStr = QString().asprintf("0x%llX, %llu", data, data);
+                valueStr = QString().asprintf("0x%" PRIX64 ", %" PRIu64, data, data);
             }
             else if(type.type.addr)
                 valueStr = "???";
