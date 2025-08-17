@@ -441,6 +441,7 @@ target_link_libraries(dbg PRIVATE
 	Shlwapi
 	Ws2_32
 	Wininet
+	Iphlpapi
 )
 
 if(CMAKE_SIZEOF_VOID_P EQUAL 4) # x86

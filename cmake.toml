@@ -105,6 +105,7 @@ private-link-libraries = [
     "Shlwapi",
     "Ws2_32",
     "Wininet",
+    "Iphlpapi",
 ]
 x86.private-link-libraries = [
     "src/dbg/dbghelp/dbghelp_x86.lib",

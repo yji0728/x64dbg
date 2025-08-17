@@ -318,11 +318,7 @@ DWORD ThreadGetId(HANDLE Thread)
     }
 
     // Wasn't found, check with Windows
-#if (_WIN32_WINNT >= 0x0600) // GetThreadId is not supported on Windows XP
     return GetThreadId(Thread);
-#else
-    return 0;
-#endif // _WIN32_WINNT >= 0x0600
 }
 
 int ThreadSuspendAll()
@@ -385,14 +381,10 @@ ULONG64 ThreadQueryCycleTime(HANDLE hThread)
 {
     ULONG64 CycleTime;
 
-#if (_WIN32_WINNT >= 0x0600) // QueryThreadCycleTime is not supported on Windows XP
     if(!QueryThreadCycleTime(hThread, &CycleTime))
         CycleTime = 0;
 
     return CycleTime;
-#else
-    return 0;
-#endif // _WIN32_WINNT >= 0x0600
 }
 
 void ThreadUpdateWaitReasons()

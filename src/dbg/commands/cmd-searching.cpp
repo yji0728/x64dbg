@@ -76,19 +76,11 @@ class SearchTimer
 public:
     SearchTimer()
     {
-#if (_WIN32_WINNT >= 0x0600) // GetTickCount64 is not supported on Windows XP
         ticks = GetTickCount64();
-#else
-        ticks = GetTickCount();
-#endif // _WIN32_WINNT >= 0x0600
     }
     void StopTimer()
     {
-#if (_WIN32_WINNT >= 0x0600) // GetTickCount64 is not supported on Windows XP
         ticks = GetTickCount64() - ticks;
-#else
-        ticks = GetTickCount() - ticks;
-#endif // _WIN32_WINNT >= 0x0600
     }
     DWORD GetTicks()
     {

@@ -65,20 +65,13 @@ void SectionLockerGlobal::Initialize()
 
     // This gets called on the same thread as the GUI
     m_guiMainThreadId = GetCurrentThreadId();
-#if (_WIN32_WINNT >= 0x0600)
+
     // Destroy previous data if any existed
     memset(m_srwLocks, 0, sizeof(m_srwLocks));
 
     for(int i = 0; i < ARRAYSIZE(m_srwLocks); i++)
         InitializeSRWLock(&m_srwLocks[i]);
-#else
-    // Fall back to critical sections otherwise
-    // Destroy previous data if any existed
-    memset(m_crLocks, 0, sizeof(m_crLocks));
 
-    for(int i = 0; i < ARRAYSIZE(m_crLocks); i++)
-        InitializeCriticalSection(&m_crLocks[i]);
-#endif // _WIN32_WINNT >= 0x0600
     m_Initialized = true;
 }
 
@@ -87,7 +80,6 @@ void SectionLockerGlobal::Deinitialize()
     if(!m_Initialized)
         return;
 
-#if (_WIN32_WINNT >= 0x0600)
     for(int i = 0; i < ARRAYSIZE(m_srwLocks); i++)
     {
         // Wait for the lock's ownership to be released
@@ -97,18 +89,6 @@ void SectionLockerGlobal::Deinitialize()
         // Invalidate data
         memset(&m_srwLocks[i], 0, sizeof(SRWLOCK));
     }
-#else
-    for(int i = 0; i < ARRAYSIZE(m_crLocks); i++)
-    {
-        // Wait for the lock's ownership to be released
-        EnterCriticalSection(&m_crLocks[i]);
-        LeaveCriticalSection(&m_crLocks[i]);
-
-        // Delete critical section
-        DeleteCriticalSection(&m_crLocks[i]);
-        memset(&m_crLocks[i], 0, sizeof(CRITICAL_SECTION));
-    }
-#endif // _WIN32_WINNT >= 0x0600
 
     m_Initialized = false;
 }

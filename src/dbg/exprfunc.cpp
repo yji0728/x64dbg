@@ -468,11 +468,7 @@ namespace Exprfunc
 
     duint gettickcount()
     {
-#if (_WIN32_WINNT >= 0x0600)
-        return GetTickCount64();
-#else
-        return GetTickCount();
-#endif _WIN32_WINNT >= 0x0600
+        return (duint)GetTickCount64();
     }
 
     duint rdtsc()

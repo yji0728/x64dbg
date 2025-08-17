@@ -403,7 +403,6 @@ void WaitForMultipleThreadsTermination(const HANDLE* hThread, int count, DWORD t
 duint GetThreadCount()
 {
     duint threadCount = std::thread::hardware_concurrency();
-#if (_WIN32_WINNT >= 0x0601) // GetLogicalProcessorInformationEx is supported on Windows 7
     DWORD length = 0;
     if(GetLogicalProcessorInformationEx(RelationAll, nullptr, &length) || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
@@ -432,6 +431,5 @@ duint GetThreadCount()
         }
         offset += info->Size;
     }
-#endif // _WIN32_WINNT >= 0x0600
     return threadCount;
 }

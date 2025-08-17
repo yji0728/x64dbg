@@ -105,7 +105,6 @@ private:
     {
         auto threadId = GetCurrentThreadId();
 
-#if (_WIN32_WINNT >= 0x0600)
         auto srwLock = &m_srwLocks[LockIndex];
 
         if(Shared)
@@ -146,24 +145,11 @@ private:
         assert(m_exclusiveOwner[LockIndex].count == 0);
         m_exclusiveOwner[LockIndex].threadId = threadId;
         m_exclusiveOwner[LockIndex].count = 1;
-#else
-        auto cr = &m_crLocks[LockIndex];
-        if(ProcessGuiEvents && threadId == m_guiMainThreadId)
-        {
-            while(!TryEnterCriticalSection(cr))
-                GuiProcessEvents();
-        }
-        else
-        {
-            EnterCriticalSection(cr);
-        }
-#endif // _WIN32_WINNT >= 0x0600
     }
 
     template<SectionLock LockIndex, bool Shared>
     static void ReleaseLock()
     {
-#if (_WIN32_WINNT >= 0x0600)
         if(Shared)
         {
             if(m_exclusiveOwner[LockIndex].threadId == GetCurrentThreadId())
@@ -181,9 +167,6 @@ private:
             m_exclusiveOwner[LockIndex].threadId = 0;
             ReleaseSRWLockExclusive(&m_srwLocks[LockIndex]);
         }
-#else
-        LeaveCriticalSection(&m_crLocks[LockIndex]);
-#endif // _WIN32_WINNT >= 0x0600
     }
 
     static bool m_Initialized;
