@@ -234,7 +234,7 @@ void MainWindow::evalError(const EvalError & error)
     }
 }
 
-bool MainWindow::typeValueCallback(const TYPEDESCRIPTOR *type, char *dest, size_t *destCount)
+bool MainWindow::typeValueCallback(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
 {
     auto itr = mNames.find(type->id);
     if(itr == mNames.end())
@@ -250,7 +250,7 @@ bool MainWindow::typeValueCallback(const TYPEDESCRIPTOR *type, char *dest, size_
     return true;
 }
 
-TreeNode MainWindow::typeVisit(TreeNode parent, const VisitInfo &info)
+TreeNode MainWindow::typeVisit(TreeNode parent, const VisitInfo & info)
 {
     if(parent == nullptr)
     {
@@ -297,7 +297,7 @@ TreeNode MainWindow::typeVisit(TreeNode parent, const VisitInfo &info)
                                   info.offset,
                                   info.size,
                                   info.line
-                                  );
+                                 );
     return node;
 }
 

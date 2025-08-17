@@ -179,12 +179,17 @@ TypeDescriptor TypeWidget::selectedType() const
 
 void TypeWidget::colorsUpdatedSlot()
 {
-    // TODO: change the palette instead?
+#ifdef X64DBG
     mTextColor = ConfigColor("StructTextColor");
+    auto p = palette();
+    p.setColor(QPalette::Text, mTextColor);
+    p.setColor(QPalette::HighlightedText, mTextColor);
+    setPalette(p);
     auto background = ConfigColor("StructBackgroundColor");
     auto altBackground = ConfigColor("StructAlternateBackgroundColor");
     auto style = QString("QTreeWidget { background-color: %1; alternate-background-color: %2; }").arg(background.name(), altBackground.name());
     setStyleSheet(style);
+#endif // X64DBG
 }
 
 void TypeWidget::fontsUpdatedSlot()
