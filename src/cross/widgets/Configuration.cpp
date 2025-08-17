@@ -309,7 +309,6 @@ Configuration::Configuration(const ConfigurationPalette & p) : QObject(), noMore
     disassemblyBool.insert("LongDataInstruction", false);
     disassemblyBool.insert("NoHighlightOperands", false);
     disassemblyBool.insert("PermanentHighlightingMode", false);
-    disassemblyBool.insert("0xPrefixValues", false);
     disassemblyBool.insert("NoBranchDisasmPreview", false);
     disassemblyBool.insert("NoCurrentModuleText", false);
     defaultBools.insert("Disassembler", disassemblyBool);
@@ -402,6 +401,7 @@ Configuration::Configuration(const ConfigurationPalette & p) : QObject(), noMore
     defaultBools.insert("HexDump", hexdumpBool);
 
     QMap<QString, duint> disasmUint;
+    disasmUint.insert("0xPrefixValues", DisasmValueNotationNone);
     disasmUint.insert("MaxModuleSize", -1);
     defaultUints.insert("Disassembler", disasmUint);
 
