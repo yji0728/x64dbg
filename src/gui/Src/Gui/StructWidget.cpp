@@ -218,3 +218,7 @@ void StructWidget::copyColumnSlot()
     if(!text.isEmpty())
         Bridge::CopyToClipboard(text);
 }
+
+#undef hasSelection
+#undef selectedItem
+#undef selectedType

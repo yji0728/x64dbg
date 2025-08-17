@@ -312,3 +312,13 @@ QString DbgCmdEscape(QString argument)
 
     return argument;
 }
+
+QString StringFormatInline(const QString & format)
+{
+    if(!DbgFunctions()->StringFormatInline)
+        return QString();
+    char result[MAX_SETTING_SIZE] = "";
+    if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
+        return result;
+    return "[Formatting Error]";
+}

@@ -2439,16 +2439,6 @@ void MainWindow::updateFavouriteTools()
     ui->menuFavourites->addAction(mFavouriteToolbar->toggleViewAction());
 }
 
-static QString stringFormatInline(const QString & format)
-{
-    if(!DbgFunctions()->StringFormatInline)
-        return QString();
-    char result[MAX_SETTING_SIZE] = "";
-    if(DbgFunctions()->StringFormatInline(format.toUtf8().constData(), MAX_SETTING_SIZE, result))
-        return result;
-    return CPUArgumentWidget::tr("[Formatting Error]");
-}
-
 void MainWindow::clickFavouriteTool()
 {
     QAction* action = qobject_cast<QAction*>(sender());
@@ -2471,7 +2461,7 @@ void MainWindow::clickFavouriteTool()
             if(sfStart < 0 || sfEnd < 0 || sfEnd < sfStart)
                 break;
             auto format = toolPath.mid(sfStart + 2, sfEnd - sfStart - 2);
-            toolPath.replace(sfStart, sfEnd - sfStart + 2, stringFormatInline(format));
+            toolPath.replace(sfStart, sfEnd - sfStart + 2, StringFormatInline(format));
         }
         GuiAddLogMessage(tr("Starting tool %1\n").arg(toolPath).toUtf8().constData());
         PROCESS_INFORMATION procinfo;
