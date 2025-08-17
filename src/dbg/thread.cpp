@@ -12,16 +12,6 @@
 static std::unordered_map<DWORD, THREADINFO> threadList;
 static std::unordered_map<DWORD, THREADWAITREASON> threadWaitReasons;
 
-// Function pointer for dynamic linking. Do not link statically for Windows XP compatibility.
-// TODO: move this function definition out of thread.cpp
-BOOL(WINAPI* pQueryThreadCycleTime)(HANDLE ThreadHandle, PULONG64 CycleTime) = nullptr;
-
-BOOL WINAPI QueryThreadCycleTimeUnsupported(HANDLE ThreadHandle, PULONG64 CycleTime)
-{
-    *CycleTime = 0;
-    return TRUE;
-}
-
 void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     THREADINFO curInfo;
@@ -328,9 +318,7 @@ DWORD ThreadGetId(HANDLE Thread)
     }
 
     // Wasn't found, check with Windows
-    typedef DWORD (WINAPI * GETTHREADID)(HANDLE hThread);
-    static GETTHREADID _GetThreadId = (GETTHREADID)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadId");
-    return _GetThreadId ? _GetThreadId(Thread) : 0;
+    return GetThreadId(Thread);
 }
 
 int ThreadSuspendAll()
@@ -393,16 +381,9 @@ ULONG64 ThreadQueryCycleTime(HANDLE hThread)
 {
     ULONG64 CycleTime;
 
-    // Initialize function pointer
-    if(pQueryThreadCycleTime == nullptr)
-    {
-        pQueryThreadCycleTime = (BOOL(WINAPI*)(HANDLE, PULONG64))GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "QueryThreadCycleTime");
-        if(pQueryThreadCycleTime == nullptr)
-            pQueryThreadCycleTime = QueryThreadCycleTimeUnsupported;
-    }
-
-    if(!pQueryThreadCycleTime(hThread, &CycleTime))
+    if(!QueryThreadCycleTime(hThread, &CycleTime))
         CycleTime = 0;
+
     return CycleTime;
 }
 
