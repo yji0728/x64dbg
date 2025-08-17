@@ -12,7 +12,7 @@
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
-    Configuration config(ConfigurationPalette());
+    Configuration config({});
     TableServer server;
     MainWindow w;
     w.show();

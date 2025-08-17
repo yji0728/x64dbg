@@ -10,7 +10,7 @@
 int main(int argc, char* argv[])
 {
     QApplication a(argc, argv);
-    Configuration config(ConfigurationPalette());
+    Configuration config({});
     MainWindow w;
     w.show();
     return a.exec();

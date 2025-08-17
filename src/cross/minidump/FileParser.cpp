@@ -439,7 +439,8 @@ std::unique_ptr<FileParser> FileParser::Create(const uint8_t* begin, const uint8
     if(memcmp(magic, mdmpMagic, sizeof(mdmpMagic)) == 0)
     {
         auto parser = std::make_unique<DmpFileParser>();
-        if(!parser->mDmp.Parse(begin, end))
+        udmpparser::MemoryView_t memoryView(begin, end);
+        if(!parser->mDmp.Parse(memoryView))
         {
             error = "Minidump parsing failed!";
             return nullptr;

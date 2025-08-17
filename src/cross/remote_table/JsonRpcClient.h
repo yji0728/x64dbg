@@ -6,7 +6,7 @@
 #include <unordered_map>
 #include <functional>
 #include <string>
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 // https://www.jsonrpc.org/specification
 class JsonRpcClient : public QObject

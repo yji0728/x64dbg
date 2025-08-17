@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Types.h"
-#include "json.hpp"
+#include <nlohmann/json.hpp>
 
 #include <vector>
 #include <string>

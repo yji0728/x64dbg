@@ -8,6 +8,11 @@ endif()
 
 # Variables
 set(LIBWOLV_ENABLE_TESTS OFF)
+set(HTTPLIB_INSTALL OFF)
+set(HTTPLIB_USE_ZSTD_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_BROTLI_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_ZLIB_IF_AVAILABLE OFF)
+set(HTTPLIB_USE_OPENSSL_IF_AVAILABLE OFF)
 
 include(FetchContent)
 
@@ -15,6 +20,33 @@ include(FetchContent)
 if(POLICY CMP0135)
 	cmake_policy(SET CMP0135 NEW)
 endif()
+message(STATUS "Fetching json...")
+FetchContent_Declare(json
+	URL
+		"https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz"
+	URL_HASH
+		SHA256=42f6e95cad6ec532fd372391373363b62a14af6d771056dbfc86160e6dfff7aa
+)
+FetchContent_MakeAvailable(json)
+
+message(STATUS "Fetching cpp-httplib (v0.25.0)...")
+FetchContent_Declare(cpp-httplib
+	GIT_REPOSITORY
+		"https://github.com/yhirose/cpp-httplib"
+	GIT_TAG
+		v0.25.0
+)
+FetchContent_MakeAvailable(cpp-httplib)
+
+message(STATUS "Fetching linux-pe (1fcb057963da3d25048bf1a331cd84aab9e09c99)...")
+FetchContent_Declare(linux-pe
+	GIT_REPOSITORY
+		"https://github.com/can1357/linux-pe"
+	GIT_TAG
+		1fcb057963da3d25048bf1a331cd84aab9e09c99
+)
+FetchContent_MakeAvailable(linux-pe)
+
 message(STATUS "Fetching PatternLanguage (3e98b047c52c07bb1816bd0936f561ce7797469d)...")
 FetchContent_Declare(PatternLanguage
 	GIT_REPOSITORY
@@ -24,19 +56,16 @@ FetchContent_Declare(PatternLanguage
 )
 FetchContent_MakeAvailable(PatternLanguage)
 
-# Target: cpp-httplib
-add_library(cpp-httplib INTERFACE)
-
-target_include_directories(cpp-httplib INTERFACE
-	cpp-httplib
+message(STATUS "Fetching udmp-parser (bc5952eda39ba0b1a07fc57f57d166292f1e9563)...")
+FetchContent_Declare(udmp-parser
+	GIT_REPOSITORY
+		"https://github.com/mrexodia/udmp-parser"
+	GIT_TAG
+		bc5952eda39ba0b1a07fc57f57d166292f1e9563
+	SOURCE_SUBDIR
+		src
 )
-
-# Target: linux-pe
-add_library(linux-pe INTERFACE)
-
-target_include_directories(linux-pe INTERFACE
-	linux-pe
-)
+FetchContent_MakeAvailable(udmp-parser)
 
 # Target: md4c-html
 set(md4c-html_SOURCES

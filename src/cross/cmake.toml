@@ -1,6 +1,7 @@
 # Reference: https://build-cpp.github.io/cmkr/cmake-toml
 [cmake]
 version = "3.19"
+cmkr-include = "../../cmake/cmkr.cmake"
 
 [project]
 name = "cross"
@@ -31,8 +32,9 @@ sources = [
 ]
 link-libraries = [
     "x64dbg::widgets",
-    "cpp-httplib",
-    "linux-pe",
+    "httplib::httplib",
+    "::linux-pe",
+    "::udmp-parser",
 ]
 
 [target.remote_table]
@@ -42,10 +44,10 @@ sources = [
     "remote_table/*.h",
     "remote_table/*.ui",
     "remote_table/*.qrc",
-    "remote_table/json.hpp",
 ]
 link-libraries = [
     "x64dbg::widgets",
+    "nlohmann_json::nlohmann_json",
 ]
 
 [target.release_notes]

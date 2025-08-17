@@ -12,7 +12,7 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
 	set(CMKR_ROOT_PROJECT ON)
 
 	# Bootstrap cmkr and automatically regenerate CMakeLists.txt
-	include(cmkr.cmake OPTIONAL RESULT_VARIABLE CMKR_INCLUDE_RESULT)
+	include("../../cmake/cmkr.cmake" OPTIONAL RESULT_VARIABLE CMKR_INCLUDE_RESULT)
 	if(CMKR_INCLUDE_RESULT)
 		cmkr()
 	endif()
@@ -74,7 +74,6 @@ set(minidump_SOURCES
 	"minidump/REToolSync.cpp"
 	"minidump/REToolSync.h"
 	"minidump/main.cpp"
-	"minidump/udmp-parser.h"
 	"minidump/udmp-utils.h"
 )
 
@@ -85,10 +84,19 @@ target_compile_features(minidump PRIVATE
 	cxx_std_20
 )
 
+if(NOT TARGET linux-pe)
+	message(FATAL_ERROR "Target \"linux-pe\" referenced by \"minidump\" does not exist!")
+endif()
+
+if(NOT TARGET udmp-parser)
+	message(FATAL_ERROR "Target \"udmp-parser\" referenced by \"minidump\" does not exist!")
+endif()
+
 target_link_libraries(minidump PRIVATE
 	x64dbg::widgets
-	cpp-httplib
+	httplib::httplib
 	linux-pe
+	udmp-parser
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
@@ -112,7 +120,6 @@ set(remote_table_SOURCES
 	"remote_table/TableRpcData.h"
 	"remote_table/TableServer.cpp"
 	"remote_table/TableServer.h"
-	"remote_table/json.hpp"
 	"remote_table/main.cpp"
 )
 
@@ -125,6 +132,7 @@ target_compile_features(remote_table PRIVATE
 
 target_link_libraries(remote_table PRIVATE
 	x64dbg::widgets
+	nlohmann_json::nlohmann_json
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)
