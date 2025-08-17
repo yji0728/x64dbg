@@ -10,90 +10,6 @@
 #include <QSpacerItem>
 #include <cinttypes>
 
-struct PatternVisitor
-{
-    int mNextId = 100;
-    uint64_t mCurrentBase = 0;
-    std::vector<char> mStringPool;
-    std::map<int, std::pair<size_t, size_t>> mNames;
-
-    bool valueCallback(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount)
-    {
-        auto itr = mNames.find(type->id);
-        if(itr == mNames.end())
-            return false;
-
-        const auto & str = itr->second;
-        if(*destCount <= str.second)
-        {
-            *destCount = str.second + 1;
-            return false;
-        }
-        strcpy_s(dest, *destCount, mStringPool.data() + str.first);
-        return true;
-    }
-
-    TreeNode visit(TreeNode parent, const VisitInfo & info)
-    {
-        if(parent == nullptr)
-        {
-            mCurrentBase = info.offset;
-        }
-
-        auto id = mNextId++;
-        {
-            auto valueLen = strlen(info.value);
-            auto valueIndex = mStringPool.size();
-            mStringPool.resize(mStringPool.size() + valueLen + 1);
-            memcpy(mStringPool.data() + valueIndex, info.value, valueLen + 1);
-            mNames[id] = {valueIndex, valueLen};
-        }
-
-        std::string name = info.type_name;
-        if(*info.variable_name)
-        {
-            name += " ";
-            name += info.variable_name;
-        }
-        TYPEDESCRIPTOR td = {};
-        td.magic = TYPEDESCRIPTOR_MAGIC;
-        td.expanded = true;
-        td.reverse = info.big_endian;
-        td.name = name.c_str();
-        td.addr = mCurrentBase;
-        td.id = id;
-        td.sizeBits = info.size * 8;
-        // TODO: detect primitive types and exclude them from the toString callback
-        td.offset = info.offset - mCurrentBase;
-        td.callback = [](const TYPEDESCRIPTOR * type, char* dest, size_t* destCount)
-        {
-            return ((PatternVisitor*)type->userdata)->valueCallback(type, dest, destCount);
-        };
-        td.userdata = this;
-        void* node = nullptr;
-        emit Bridge::getBridge()->typeAddNode(parent, &td, &node);
-        printf("[%p->%p] %s %s |%s| (address: 0x%" PRIX64 ", size: 0x%" PRIX64 ", line: %d)\n",
-               parent,
-               node,
-               info.type_name,
-               info.variable_name,
-               info.value,
-               info.offset,
-               info.size,
-               info.line
-              );
-        return node;
-    }
-
-    void clear()
-    {
-        mCurrentBase = 0;
-        mStringPool.clear();
-        mNames.clear();
-    }
-};
-
-
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -109,13 +25,10 @@ MainWindow::MainWindow(QWidget* parent)
     {
         loadFile(args.at(1));
     }
-
-    mVisitor = new PatternVisitor;
 }
 
 MainWindow::~MainWindow()
 {
-    delete mVisitor;
     delete ui;
 }
 
@@ -205,14 +118,21 @@ void MainWindow::setupWidgets()
     mLogBrowser->setOpenExternalLinks(true);
     mLogBrowser->setOpenLinks(false);
     connect(mLogBrowser, &QTextBrowser::anchorClicked, this, &MainWindow::onLogAnchorClicked);
-    mStructWidget = new StructWidget(this);
+    mTypeWidget = new TypeWidget(this);
 
     mDataTable = new DataTable(this);
     connect(mHexDump, &MiniHexDump::selectionUpdated, [this]()
     {
         mDataTable->selectionChanged(mHexDump->getSelectionStart(), mHexDump->getSelectionEnd());
     });
-    connect(mStructWidget, &StructWidget::selectionUpdated, this, &MainWindow::gotoHexDump);
+    connect(mTypeWidget, &TypeWidget::itemSelectionChanged, [this]()
+    {
+        auto type = mTypeWidget->selectedType();
+        if(!type.empty())
+        {
+            gotoHexDump(type.type.addr + type.type.offset, type.type.sizeBits / 8);
+        }
+    });
 
     auto hl = new QHBoxLayout();
     //hl->addSpacing()
@@ -234,7 +154,7 @@ void MainWindow::setupWidgets()
 
     auto codeSplitter = new QSplitter(Qt::Vertical, this);
     codeSplitter->addWidget(codeWidget);
-    codeSplitter->addWidget(mStructWidget);
+    codeSplitter->addWidget(mTypeWidget);
     codeSplitter->setStretchFactor(0, 80);
     codeSplitter->setStretchFactor(0, 20);
 
@@ -312,6 +232,80 @@ void MainWindow::evalError(const EvalError & error)
         cursor.setPosition(mCodeEditor->document()->findBlockByLineNumber(errorLine - 1).position() + errorColumn - 1);
         mCodeEditor->setTextCursor(cursor);
     }
+}
+
+bool MainWindow::typeValueCallback(const TYPEDESCRIPTOR *type, char *dest, size_t *destCount)
+{
+    auto itr = mNames.find(type->id);
+    if(itr == mNames.end())
+        return false;
+
+    const auto & str = itr->second;
+    if(*destCount <= str.second)
+    {
+        *destCount = str.second + 1;
+        return false;
+    }
+    strcpy_s(dest, *destCount, mStringPool.data() + str.first);
+    return true;
+}
+
+TreeNode MainWindow::typeVisit(TreeNode parent, const VisitInfo &info)
+{
+    if(parent == nullptr)
+    {
+        mCurrentBase = info.offset;
+    }
+
+    auto id = mNextId++;
+    {
+        auto valueLen = strlen(info.value);
+        auto valueIndex = mStringPool.size();
+        mStringPool.resize(mStringPool.size() + valueLen + 1);
+        memcpy(mStringPool.data() + valueIndex, info.value, valueLen + 1);
+        mNames[id] = {valueIndex, valueLen};
+    }
+
+    std::string name = info.type_name;
+    if(*info.variable_name)
+    {
+        name += " ";
+        name += info.variable_name;
+    }
+    TYPEDESCRIPTOR td = {};
+    td.magic = TYPEDESCRIPTOR_MAGIC;
+    td.expanded = true;
+    td.reverse = info.big_endian;
+    td.name = name.c_str();
+    td.addr = mCurrentBase;
+    td.id = id;
+    td.sizeBits = info.size * 8;
+    // TODO: detect primitive types and exclude them from the toString callback
+    td.offset = info.offset - mCurrentBase;
+    td.callback = [](const TYPEDESCRIPTOR * type, char* dest, size_t* destCount)
+    {
+        return ((MainWindow*)type->userdata)->typeValueCallback(type, dest, destCount);
+    };
+    td.userdata = this;
+    auto node = mTypeWidget->typeAddNode((QTreeWidgetItem*)parent, &td);
+    qDebug() << QString::asprintf("[%p->%p] %s %s |%s| (address: 0x%" PRIX64 ", size: 0x%" PRIX64 ", line: %d)\n",
+                                  parent,
+                                  node,
+                                  info.type_name,
+                                  info.variable_name,
+                                  info.value,
+                                  info.offset,
+                                  info.size,
+                                  info.line
+                                  );
+    return node;
+}
+
+void MainWindow::typeClear()
+{
+    mCurrentBase = 0;
+    mStringPool.clear();
+    mNames.clear();
 }
 
 void MainWindow::gotoHexDump(duint address, duint size)
@@ -395,16 +389,17 @@ void MainWindow::onButtonRunPressed()
     };
     args.visit = [](void* userdata, TreeNode parent, const VisitInfo * info) -> TreeNode
     {
-        return ((MainWindow*)userdata)->mVisitor->visit(parent, *info);
+        return ((MainWindow*)userdata)->typeVisit(parent, *info);
     };
     // TODO: support removing type nodes from the API?
     // TODO: callback on remove of type node
-    emit Bridge::getBridge()->typeClear();
-    mVisitor->clear();
+    mTypeWidget->clearTypes();
+    typeClear();
     mLogBrowser->clear();
     mCodeEditor->setErrorLine(-1);
+    qDebug() << "test";
     auto status = PatternRun(&args);
-    emit Bridge::getBridge()->typeUpdateWidget();
+    mTypeWidget->updateValuesSlot();
     mStructTabs->setCurrentIndex(1);
 }
 

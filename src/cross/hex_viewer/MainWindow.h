@@ -11,7 +11,7 @@
 #include "CodeEditor.h"
 #include "PatternHighlighter.h"
 #include "PatternLanguage.h"
-#include "StructWidget.h"
+#include <Gui/TypeWidget.h>
 #include <QTextBrowser>
 #include "DataTable.h"
 
@@ -41,6 +41,9 @@ private:
     void logHandler(LogLevel level, const char* message);
     void compileError(const CompileError & error);
     void evalError(const EvalError & error);
+    bool typeValueCallback(const TYPEDESCRIPTOR* type, char* dest, size_t* destCount);
+    TreeNode typeVisit(TreeNode parent, const VisitInfo & info);
+    void typeClear();
 
 private:
     Ui::MainWindow* ui = nullptr;
@@ -50,9 +53,13 @@ private:
     CodeEditor* mCodeEditor = nullptr;
     PatternHighlighter* mHighlighter = nullptr;
     QTextBrowser* mLogBrowser = nullptr;
-    StructWidget* mStructWidget = nullptr;
+    TypeWidget* mTypeWidget = nullptr;
     DataTable* mDataTable = nullptr;
-    class PatternVisitor* mVisitor = nullptr;
     QTabWidget* mStructTabs = nullptr;
+
+    int mNextId = 100;
+    uint64_t mCurrentBase = 0;
+    std::vector<char> mStringPool;
+    std::map<int, std::pair<size_t, size_t>> mNames;
 };
 #endif // MAINWINDOW_H

@@ -189,11 +189,6 @@ set(hex_viewer_SOURCES
 	"hex_viewer/PatternHighlighter.h"
 	"hex_viewer/PatternLanguage.cpp"
 	"hex_viewer/PatternLanguage.h"
-	"hex_viewer/RichTextItemDelegate.cpp"
-	"hex_viewer/RichTextItemDelegate.h"
-	"hex_viewer/StructWidget.cpp"
-	"hex_viewer/StructWidget.h"
-	"hex_viewer/StructWidget.ui"
 	"hex_viewer/Styled.h"
 	"hex_viewer/main.cpp"
 )

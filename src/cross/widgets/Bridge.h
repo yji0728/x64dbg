@@ -148,7 +148,7 @@ struct TYPEDESCRIPTOR
 {
     bool expanded; //is the type node expanded?
     bool reverse; //big endian?
-    uint16_t magic; // compatiblity
+    uint16_t magic; // compatiblity (set to TYPEDESCRIPTOR_MAGIC for the new version)
     const char* name; //type name (int b)
     duint addr; //virtual address
     duint offset; //offset to addr for the actual location in bytes
@@ -157,6 +157,7 @@ struct TYPEDESCRIPTOR
     TYPETOSTRING callback; //convert to string
     void* userdata; //user data
     duint bitOffset; // bit offset from first bitfield
+    const char* typeName; // undecorated typename
 };
 
 using GuiCallback = void(*)(void*);

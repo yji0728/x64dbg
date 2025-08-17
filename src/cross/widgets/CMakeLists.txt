@@ -54,6 +54,10 @@ set(widgets_SOURCES
     ${widgets_SOURCE_DIR}/Gui/LineEditDialog.cpp
     ${widgets_SOURCE_DIR}/Gui/LineEditDialog.h
     ${widgets_SOURCE_DIR}/Gui/LineEditDialog.ui
+    ${widgets_SOURCE_DIR}/Gui/TypeWidget.cpp
+    ${widgets_SOURCE_DIR}/Gui/TypeWidget.h
+    ${widgets_SOURCE_DIR}/Gui/RichTextItemDelegate.cpp
+    ${widgets_SOURCE_DIR}/Gui/RichTextItemDelegate.h
     ${widgets_SOURCE_DIR}/Memory/MemoryPage.cpp
     ${widgets_SOURCE_DIR}/Memory/MemoryPage.h
     ${widgets_SOURCE_DIR}/Utils/ActionHelpers.h

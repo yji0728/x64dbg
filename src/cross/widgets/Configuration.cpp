@@ -278,7 +278,8 @@ Configuration::Configuration(const ConfigurationPalette & p) : QObject(), noMore
     defaultColors.insert("SearchListViewHighlightBackgroundColor", Qt::transparent);
     defaultColors.insert("StructTextColor", black);
     defaultColors.insert("StructBackgroundColor", background);
-    defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF"));
+    defaultColors.insert("StructAlternateBackgroundColor", QColor("#DCD9CF")); // TODO
+    defaultColors["StructAlternateBackgroundColor"] = background;
     defaultColors.insert("LogLinkColor", QColor("#00CC00"));
     defaultColors.insert("LogLinkBackgroundColor", Qt::transparent);
     defaultColors.insert("BreakpointSummaryParenColor", Qt::red);

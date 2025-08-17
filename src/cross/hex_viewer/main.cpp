@@ -113,7 +113,6 @@ int main(int argc, char* argv[])
     palette.setColor(QPalette::Link, oneDarkFunction);
     palette.setColor(QPalette::LinkVisited, oneDarkFunction);
     palette.setColor(QPalette::Highlight, oneDarkFunction);
-    palette.setColor(QPalette::Highlight, oneDarkFunction);
     palette.setColor(QPalette::HighlightedText, oneDarkBackground);
 
     palette.setColor(QPalette::Light, oneDarkBackground.lighter(120));
