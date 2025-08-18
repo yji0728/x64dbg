@@ -4,7 +4,7 @@
 #include <QRegularExpression>
 #include <QDesktopServices>
 #include <QResizeEvent>
-#include <QDebug>
+#include <QScrollBar>
 
 #include <md4c-html.h>
 
@@ -256,6 +256,6 @@ bool ReleaseNotesDialog::setMarkdown(QString markdown, const QString & issueUrl)
 
 void ReleaseNotesDialog::resizeEvent(QResizeEvent* event)
 {
-    qDebug() << "ReleaseNotesDialog::resizeEvent" << event->oldSize() << event->size();
     QDialog::resizeEvent(event);
+    ui->textBrowser->resizeImages();
 }

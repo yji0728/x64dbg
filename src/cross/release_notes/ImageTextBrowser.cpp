@@ -1,7 +1,9 @@
 #include "ImageTextBrowser.h"
 
-#include <QDebug>
 #include <QResizeEvent>
+#include <QApplication>
+#include <QScrollBar>
+#include <QTextBlock>
 
 ImageTextBrowser::ImageTextBrowser(QWidget* parent)
     : QTextBrowser(parent)
@@ -11,13 +13,23 @@ ImageTextBrowser::ImageTextBrowser(QWidget* parent)
     mResizeTimer->setInterval(300);
     connect(mResizeTimer, &QTimer::timeout, this, [this]()
     {
-        qDebug() << "timeout";
         setText(toHtml());
+        auto vbar = verticalScrollBar();
+        vbar->setValue(vbar->maximum() * mSavedScrollPercentage);
     });
+}
+
+void ImageTextBrowser::resizeImages()
+{
+    auto vbar = verticalScrollBar();
+    auto max = vbar->maximum();
+    mSavedScrollPercentage = (max > 0) ? (qreal)vbar->value() / max : 0.0;
+    mResizeTimer->start();
 }
 
 QVariant ImageTextBrowser::loadResource(int type, const QUrl & name)
 {
+    QImage image;
     auto url = name.toString();
     if(url.startsWith("http"))
     {
@@ -29,20 +41,19 @@ QVariant ImageTextBrowser::loadResource(int type, const QUrl & name)
         if(base64Index != -1)
         {
             auto data = QByteArray::fromBase64(url.mid(base64Index + 8).toUtf8());
-            auto image = QImage::fromData(data);
-            auto maxWidth = document()->textWidth() - document()->documentMargin() * 2 - 1;
-            if(image.width() > maxWidth)
-            {
-                image = image.scaledToWidth((int)maxWidth, Qt::SmoothTransformation);
-            }
-            return image;
+            image = QImage::fromData(data);
         }
     }
-    return QTextBrowser::loadResource(type, name);
-}
+    else
+    {
+        return QTextBrowser::loadResource(type, name);
+    }
 
-void ImageTextBrowser::resizeEvent(QResizeEvent* event)
-{
-    qDebug() << "ImageTextBrowser::resizeEvent" << event->oldSize() << event->size();
-    QTextBrowser::resizeEvent(event);
+    // Scale the image to the width of the document
+    auto maxWidth = viewport()->width() - document()->documentMargin() * 2;
+    if(image.width() > maxWidth)
+    {
+        image = image.scaledToWidth((int)maxWidth, Qt::SmoothTransformation);
+    }
+    return image;
 }
