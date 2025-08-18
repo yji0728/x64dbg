@@ -43,10 +43,6 @@ QVariant ImageTextBrowser::loadResource(int type, const QUrl & name)
 
 void ImageTextBrowser::resizeEvent(QResizeEvent* event)
 {
-    if(event->size() != event->oldSize())
-    {
-        //qDebug() << "resizeEvent";
-        //mResizeTimer->start();
-    }
+    qDebug() << "ImageTextBrowser::resizeEvent" << event->oldSize() << event->size();
     QTextBrowser::resizeEvent(event);
 }

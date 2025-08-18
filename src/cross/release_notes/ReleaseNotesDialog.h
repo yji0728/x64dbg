@@ -12,8 +12,12 @@ class ReleaseNotesDialog : public QDialog
     Q_OBJECT
 
 public:
-    ReleaseNotesDialog(const QByteArray & markdown, QWidget* parent = nullptr);
+    explicit ReleaseNotesDialog(QWidget* parent = nullptr);
     ~ReleaseNotesDialog();
+    bool setMarkdown(QString markdown, const QString & issueUrl);
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 
 private:
     Ui::ReleaseNotesDialog* ui;
