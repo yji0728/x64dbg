@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <algorithm>
+#include <string.h>
 
 // TODO: do something cross platform
 using duint = uint64_t;
@@ -18,7 +19,12 @@ int sprintf_s(char (&Dest)[Count], const char* fmt, Args... args)
 
 inline size_t strcpy_s(char* dst, size_t size, const char* src)
 {
-    return strlcpy(dst, src, size);
+    if(!dst || !src || !size)
+        return 0;
+    size_t i = 0;
+    while(i < size - 1 && src[i]) dst[i] = src[i], i++;
+    dst[i] = 0;
+    return i;
 }
 #endif // _WIN32
 

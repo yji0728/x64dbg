@@ -20,7 +20,7 @@ int main(int argc, char* argv[])
     auto markdown = f.readAll();
 
     QApplication a(argc, argv);
-    ReleaseNotesDialog d;
+    ReleaseNotesDialog d({});
     if(!d.setMarkdown(QString::fromUtf8(markdown), "https://github.com/x64dbg/x64dbg/issues/"))
     {
         puts("Failed to convert markdown!");

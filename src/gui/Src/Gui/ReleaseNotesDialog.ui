@@ -43,7 +43,7 @@
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
+        <enum>Qt::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -59,7 +59,7 @@
         <string/>
        </property>
        <property name="textFormat">
-        <enum>Qt::TextFormat::RichText</enum>
+        <enum>Qt::RichText</enum>
        </property>
        <property name="openExternalLinks">
         <bool>true</bool>
@@ -81,7 +81,7 @@
   <customwidget>
    <class>ImageTextBrowser</class>
    <extends>QTextBrowser</extends>
-   <header>ImageTextBrowser.h</header>
+   <header location="global">Gui/ImageTextBrowser.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

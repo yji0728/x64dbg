@@ -65,6 +65,7 @@ set(widgets_SOURCES
     ${widgets_SOURCE_DIR}/Gui/RichTextItemDelegate.h
     ${widgets_SOURCE_DIR}/Gui/ReleaseNotesDialog.cpp
     ${widgets_SOURCE_DIR}/Gui/ReleaseNotesDialog.h
+    ${widgets_SOURCE_DIR}/Gui/ReleaseNotesDialog.ui
     ${widgets_SOURCE_DIR}/Gui/ImageTextBrowser.cpp
     ${widgets_SOURCE_DIR}/Gui/ImageTextBrowser.h
     ${widgets_SOURCE_DIR}/Memory/MemoryPage.cpp
