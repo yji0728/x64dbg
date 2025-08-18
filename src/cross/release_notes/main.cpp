@@ -1,7 +1,7 @@
 #include <QApplication>
 #include <QFile>
 
-#include "ReleaseNotesDialog.h"
+#include <Gui/ReleaseNotesDialog.h>
 
 int main(int argc, char* argv[])
 {

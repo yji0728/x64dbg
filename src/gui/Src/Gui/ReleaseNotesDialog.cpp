@@ -194,12 +194,13 @@ static void markdownGithubLinks(QString & markdown, const QString & issueUrl)
     }
 }
 
-ReleaseNotesDialog::ReleaseNotesDialog(QWidget* parent)
+ReleaseNotesDialog::ReleaseNotesDialog(ImageTextBrowser::DownloadFn downloadFn, QWidget* parent)
     : QDialog(parent)
     , ui(new Ui::ReleaseNotesDialog)
 {
     setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
     ui->setupUi(this);
+    ui->textBrowser->setDownloadFn(std::move(downloadFn));
 
 #ifdef Q_OS_WINDOWS
     QFont font("Segoe UI");
@@ -252,6 +253,11 @@ bool ReleaseNotesDialog::setMarkdown(QString markdown, const QString & issueUrl)
     html = fixupHtmlEmojiBug(html);
     ui->textBrowser->setText(html);
     return !html.isEmpty();
+}
+
+void ReleaseNotesDialog::setLabel(const QString & text)
+{
+    ui->label->setText(text);
 }
 
 void ReleaseNotesDialog::resizeEvent(QResizeEvent* event)

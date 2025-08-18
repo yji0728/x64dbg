@@ -66,23 +66,3 @@ FetchContent_Declare(udmp-parser
 		src
 )
 FetchContent_MakeAvailable(udmp-parser)
-
-# Target: md4c-html
-set(md4c-html_SOURCES
-	cmake.toml
-	"md4c/md4c-entity.c"
-	"md4c/md4c-entity.h"
-	"md4c/md4c-html.c"
-	"md4c/md4c-html.h"
-	"md4c/md4c.c"
-	"md4c/md4c.h"
-)
-
-add_library(md4c-html STATIC)
-
-target_sources(md4c-html PRIVATE ${md4c-html_SOURCES})
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${md4c-html_SOURCES})
-
-target_include_directories(md4c-html PUBLIC
-	md4c
-)

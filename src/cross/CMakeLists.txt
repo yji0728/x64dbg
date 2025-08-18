@@ -143,11 +143,6 @@ endif()
 # Target: release_notes
 set(release_notes_SOURCES
 	cmake.toml
-	"release_notes/ImageTextBrowser.cpp"
-	"release_notes/ImageTextBrowser.h"
-	"release_notes/ReleaseNotesDialog.cpp"
-	"release_notes/ReleaseNotesDialog.h"
-	"release_notes/ReleaseNotesDialog.ui"
 	"release_notes/main.cpp"
 )
 
@@ -162,12 +157,8 @@ target_include_directories(release_notes PRIVATE
 	release_notes
 )
 
-if(NOT TARGET md4c-html)
-	message(FATAL_ERROR "Target \"md4c-html\" referenced by \"release_notes\" does not exist!")
-endif()
-
 target_link_libraries(release_notes PRIVATE
-	md4c-html
+	x64dbg::widgets
 )
 
 get_directory_property(CMKR_VS_STARTUP_PROJECT DIRECTORY ${PROJECT_SOURCE_DIR} DEFINITION VS_STARTUP_PROJECT)

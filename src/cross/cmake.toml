@@ -59,7 +59,7 @@ sources = [
 ]
 include-directories = ["release_notes"]
 link-libraries = [
-    "::md4c-html",
+    "x64dbg::widgets",
 ]
 
 [target.hex_viewer]
