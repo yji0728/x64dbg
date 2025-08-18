@@ -1065,7 +1065,9 @@ void MainWindow::loadWindowSettings()
     }
 
 #ifdef X64DBG_RELEASE
-    auto compileEpoch = GetCompileDate().startOfDay(Qt::UTC).toSecsSinceEpoch();
+    auto compileDate = QDateTime(GetCompileDate());
+    compileDate.setTimeSpec(Qt::UTC);
+    auto compileEpoch = compileDate.toSecsSinceEpoch();
     duint releaseNotesEpoch = 0;
     BridgeSettingGetUint("Gui", "ReleaseNotesEpoch", &releaseNotesEpoch);
     if(releaseNotesEpoch < compileEpoch)
@@ -1231,8 +1233,9 @@ void MainWindow::showReleaseNotes(duint cutoffEpoch)
         {
             QRegularExpressionMatch match = i.next();
             auto matchText = match.captured(1);
-            auto matchDate = QDate::fromString(matchText, "yyyy.MM.dd");
-            auto matchEpoch = matchDate.startOfDay(Qt::UTC).toSecsSinceEpoch();
+            auto matchDate = QDateTime::fromString(matchText, "yyyy.MM.dd");
+            matchDate.setTimeSpec(Qt::UTC);
+            auto matchEpoch = matchDate.toSecsSinceEpoch();
             if(matchEpoch <= cutoffEpoch)
             {
                 markdown = markdown.left(match.capturedStart(0));
