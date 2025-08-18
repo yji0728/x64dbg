@@ -3,6 +3,7 @@
 #include <QTextBrowser>
 #include <QTextCursor>
 #include <QTimer>
+#include <QMap>
 
 #include <functional>
 
@@ -27,4 +28,5 @@ private:
     qreal mSavedScrollPercentage = 0.0;
     QTimer* mResizeTimer = nullptr;
     DownloadFn mDownloadFn;
+    QMap<QString, QImage> mImageCache;
 };

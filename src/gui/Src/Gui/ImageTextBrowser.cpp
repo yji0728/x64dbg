@@ -33,9 +33,15 @@ QVariant ImageTextBrowser::loadResource(int type, const QUrl & name)
     auto url = name.toString();
     if(url.startsWith("http"))
     {
-        if(mDownloadFn)
+        auto itr = mImageCache.find(url);
+        if(itr != mImageCache.end())
+        {
+            image = itr.value();
+        }
+        else if(mDownloadFn)
         {
             image = mDownloadFn(url);
+            mImageCache.insert(url, image);
         }
     }
     else if(url.startsWith("data:"))

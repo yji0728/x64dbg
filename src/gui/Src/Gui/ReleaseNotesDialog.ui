@@ -58,6 +58,9 @@
        <property name="text">
         <string/>
        </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::RichText</enum>
+       </property>
        <property name="openExternalLinks">
         <bool>true</bool>
        </property>
