@@ -321,8 +321,8 @@ QString TypeWidget::highlightTypeName(QString name) const
 
     name.replace(re, "<b>\\1</b>");
 
-    static QRegularExpression sre("^(\\[\\d+\\] )?(struct|union|class|enum)( [a-zA-Z0-9_:$]+)?");
-    name.replace(sre, "\\1<u>\\2</u><b>\\3</b>");
+    static QRegularExpression sre(R"(^(\[\d+\] )?(struct|union|class|enum)( [a-zA-Z0-9_:$]+)?)");
+    name.replace(sre, R"(\1<u>\2</u><b>\3</b>)");
 
     return name;
 }
