@@ -11,13 +11,13 @@
    </rect>
   </property>
   <property name="contextMenuPolicy">
-   <enum>Qt::ContextMenuPolicy::NoContextMenu</enum>
+   <enum>Qt::NoContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>x64dbg</string>
   </property>
   <property name="toolButtonStyle">
-   <enum>Qt::ToolButtonStyle::ToolButtonIconOnly</enum>
+   <enum>Qt::ToolButtonIconOnly</enum>
   </property>
   <widget class="QWidget" name="centralWidget"/>
   <widget class="QMenuBar" name="menuBar">
@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>868</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -304,7 +304,7 @@
     <bool>false</bool>
    </property>
    <property name="allowedAreas">
-    <set>Qt::ToolBarArea::BottomToolBarArea</set>
+    <set>Qt::NoToolBarArea</set>
    </property>
    <attribute name="toolBarArea">
     <enum>BottomToolBarArea</enum>
@@ -1555,7 +1555,7 @@
   </action>
   <action name="actionReleaseNotes">
    <property name="icon">
-    <iconset resource="../../resource.qrc">
+    <iconset theme="bug" resource="../../resource.qrc">
      <normaloff>:/Default/icons/bug.png</normaloff>:/Default/icons/bug.png</iconset>
    </property>
    <property name="text">
