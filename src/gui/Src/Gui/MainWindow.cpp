@@ -1245,7 +1245,10 @@ void MainWindow::showReleaseNotes(duint cutoffEpoch)
     }
 
     ReleaseNotesDialog dialog({}, this);
-    dialog.move(frameGeometry().center() - dialog.rect().center());
+    auto titleBarHeight = frameGeometry().height() - geometry().height();
+    auto position = frameGeometry().center() - dialog.frameGeometry().center();
+    position.setY(position.y() - titleBarHeight / 2);
+    dialog.move(position);
     dialog.setMarkdown(markdown, "https://github.com/x64dbg/x64dbg/issues/");
     dialog.setWindowIcon(DIcon("bug"));
     dialog.exec();
