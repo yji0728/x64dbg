@@ -35,15 +35,15 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <property name="spacing">
-      <number>4</number>
+      <number>8</number>
      </property>
      <property name="rightMargin">
-      <number>4</number>
+      <number>0</number>
      </property>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
+        <enum>Qt::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -52,6 +52,19 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="pushButton">
@@ -68,7 +81,7 @@
   <customwidget>
    <class>ImageTextBrowser</class>
    <extends>QTextBrowser</extends>
-   <header>ImageTextBrowser.h</header>
+   <header location="global">Gui/ImageTextBrowser.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

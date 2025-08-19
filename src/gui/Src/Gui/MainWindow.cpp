@@ -2,6 +2,7 @@
 #include "ui_MainWindow.h"
 #include <QMutex>
 #include <QMessageBox>
+#include <QToolButton>
 #include <QIcon>
 #include <QUrl>
 #include <QFileDialog>
@@ -53,6 +54,7 @@
 #include "MRUList.h"
 #include "AboutDialog.h"
 #include "UpdateChecker.h"
+#include "Gui/ReleaseNotesDialog.h"
 #include "Tracer/TraceManager.h"
 //#include "Tracer/TraceWidget.h"
 #include "Utils/MethodInvoker.h"
@@ -390,6 +392,11 @@ MainWindow::MainWindow(QWidget* parent)
     setupThemesMenu();
     setupMenuCustomization();
     ui->actionAbout_Qt->setIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
+    auto toolButton = qobject_cast<QToolButton*>(ui->mainToolBar->widgetForAction(ui->actionCheckUpdates));
+    if(toolButton)
+    {
+        toolButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    }
 
     // Set default setttings (when not set)
     SettingsDialog defaultSettings;
@@ -1056,6 +1063,21 @@ void MainWindow::loadWindowSettings()
             tr("You are running x64dbg on an unsupported operating system version. <b>Future updates will completely stop running on this system.</b><br><br>For more information, see the official <a href=\"%1\">announcement</a>.").arg("https://transition.x64dbg.com")
         );
     }
+
+#ifdef X64DBG_RELEASE
+    auto compileDate = QDateTime(GetCompileDate());
+    compileDate.setTimeSpec(Qt::UTC);
+    auto compileEpoch = compileDate.toSecsSinceEpoch();
+    duint releaseNotesEpoch = 0;
+    BridgeSettingGetUint("Gui", "ReleaseNotesEpoch", &releaseNotesEpoch);
+    if(releaseNotesEpoch < compileEpoch)
+    {
+        showReleaseNotes(releaseNotesEpoch);
+        BridgeSettingSetUint("Gui", "ReleaseNotesPrevEpoch", releaseNotesEpoch);
+        BridgeSettingSetUint("Gui", "ReleaseNotesEpoch", compileEpoch);
+        BridgeSettingFlush();
+    }
+#endif // X64DBG_RELEASE
 }
 
 void MainWindow::setGlobalShortcut(QAction* action, const QKeySequence & key)
@@ -1183,6 +1205,50 @@ QAction* MainWindow::makeCommandAction(QAction* action, const QString & command)
     action->setData(QVariant(command));
     connect(action, SIGNAL(triggered()), this, SLOT(execCommandSlot()));
     return action;
+}
+
+void MainWindow::showReleaseNotes(duint cutoffEpoch)
+{
+    QFile file(QString("%1/../release-notes.md").arg(QCoreApplication::applicationDirPath()));
+    if(!file.open(QFile::ReadOnly))
+    {
+        SimpleErrorBox(
+            this,
+            tr("Error"),
+            tr("Release notes are not available, see <a href=\"%1\">%2</a> for the latest updates.")
+            .arg("https://update.x64dbg.com")
+            .arg("update.x64dbg.com")
+        );
+        return;
+    }
+    auto markdown = QString::fromUtf8(file.readAll());
+    file.close();
+
+    if(cutoffEpoch)
+    {
+        static QRegularExpression re(R"(<!-- *(\d\d\d\d.\d\d.\d\d) *-->)");
+        auto i = re.globalMatch(markdown);
+        QStringList words;
+        while(i.hasNext())
+        {
+            QRegularExpressionMatch match = i.next();
+            auto matchText = match.captured(1);
+            auto matchDate = QDateTime::fromString(matchText, "yyyy.MM.dd");
+            matchDate.setTimeSpec(Qt::UTC);
+            auto matchEpoch = matchDate.toSecsSinceEpoch();
+            if(matchEpoch <= cutoffEpoch)
+            {
+                markdown = markdown.left(match.capturedStart(0));
+                break;
+            }
+        }
+    }
+
+    ReleaseNotesDialog dialog({}, this);
+    dialog.move(frameGeometry().center() - dialog.rect().center());
+    dialog.setMarkdown(markdown, "https://github.com/x64dbg/x64dbg/issues/");
+    dialog.setWindowIcon(DIcon("bug"));
+    dialog.exec();
 }
 
 void MainWindow::execCommandSlot()
@@ -2763,6 +2829,13 @@ void MainWindow::on_actionAbout_Qt_triggered()
     w->setWindowIcon(QApplication::style()->standardIcon(QStyle::SP_TitleBarMenuButton));
     QMessageBox::aboutQt(w);
     delete w;
+}
+
+void MainWindow::on_actionReleaseNotes_triggered()
+{
+    duint cutoffEpoch = 0;
+    BridgeSettingGetUint("Gui", "ReleaseNotesPrevEpoch", &cutoffEpoch);
+    showReleaseNotes(cutoffEpoch);
 }
 
 void MainWindow::updateStyle()

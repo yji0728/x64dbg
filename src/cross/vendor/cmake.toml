@@ -26,9 +26,3 @@ tag = "3e98b047c52c07bb1816bd0936f561ce7797469d"
 git = "https://github.com/mrexodia/udmp-parser"
 tag = "bc5952eda39ba0b1a07fc57f57d166292f1e9563"
 subdir = "src"
-
-# https://github.com/mity/md4c/commit/481fbfbdf72daab2912380d62bb5f2187d438408
-[target.md4c-html]
-type = "static"
-sources = ["md4c/*.c", "md4c/*.h"]
-include-directories = ["md4c"]

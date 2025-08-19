@@ -5,6 +5,11 @@ add_subdirectory(
     ${CMAKE_CURRENT_BINARY_DIR}/zydis_wrapper
 )
 
+add_subdirectory(
+    ${widgets_SOURCE_DIR}/ThirdPartyLibs/md4c
+    ${CMAKE_CURRENT_BINARY_DIR}/md4c
+)
+
 include(Qt.cmake)
 
 set(hook_SOURCES
@@ -58,6 +63,11 @@ set(widgets_SOURCES
     ${widgets_SOURCE_DIR}/Gui/TypeWidget.h
     ${widgets_SOURCE_DIR}/Gui/RichTextItemDelegate.cpp
     ${widgets_SOURCE_DIR}/Gui/RichTextItemDelegate.h
+    ${widgets_SOURCE_DIR}/Gui/ReleaseNotesDialog.cpp
+    ${widgets_SOURCE_DIR}/Gui/ReleaseNotesDialog.h
+    ${widgets_SOURCE_DIR}/Gui/ReleaseNotesDialog.ui
+    ${widgets_SOURCE_DIR}/Gui/ImageTextBrowser.cpp
+    ${widgets_SOURCE_DIR}/Gui/ImageTextBrowser.h
     ${widgets_SOURCE_DIR}/Memory/MemoryPage.cpp
     ${widgets_SOURCE_DIR}/Memory/MemoryPage.h
     ${widgets_SOURCE_DIR}/Utils/ActionHelpers.h
@@ -98,6 +108,7 @@ target_compile_definitions(x64dbg_widgets PRIVATE
 target_link_libraries(x64dbg_widgets PUBLIC
     ${QT_LIBRARIES}
     zydis_wrapper
+    md4c-html
 )
 
 # https://doc.qt.io/qt-6/wasm.html#asyncify
