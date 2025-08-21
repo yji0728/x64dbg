@@ -1228,6 +1228,7 @@ void MainWindow::showReleaseNotes(duint cutoffEpoch)
     {
         static QRegularExpression re(R"(<!-- *(\d\d\d\d.\d\d.\d\d) *-->)");
         auto i = re.globalMatch(markdown);
+        bool seenCutoff = false;
         QStringList words;
         while(i.hasNext())
         {
@@ -1236,11 +1237,12 @@ void MainWindow::showReleaseNotes(duint cutoffEpoch)
             auto matchDate = QDateTime::fromString(matchText, "yyyy.MM.dd");
             matchDate.setTimeSpec(Qt::UTC);
             auto matchEpoch = matchDate.toSecsSinceEpoch();
-            if(matchEpoch <= cutoffEpoch)
+            if(matchEpoch <= cutoffEpoch && seenCutoff)
             {
                 markdown = markdown.left(match.capturedStart(0));
                 break;
             }
+            seenCutoff = true;
         }
     }
 
