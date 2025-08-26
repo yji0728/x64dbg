@@ -9,3 +9,4 @@
 - [jansson](https://github.com/x64dbg/jansson): [`MIT`](https://github.com/x64dbg/jansson/blob/master/LICENSE)
 - [Zydis](https://github.com/zyantific/zydis): [`MIT`](https://github.com/zyantific/zydis/blob/master/LICENSE)
 - [lz4](https://github.com/x64dbg/lz4): [`BSD`](https://github.com/x64dbg/lz4/blob/master/LICENSE)
+- [Qt 5](https://www.qt.io/): [`LGPL`](https://www.qt.io/licensing/open-source-lgpl-obligations)
