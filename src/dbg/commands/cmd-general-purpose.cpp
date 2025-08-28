@@ -504,7 +504,7 @@ bool cbInstrMovdqu(int argc, char* argv[])
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read (all) memory..."));
             return false;
         }
-        SetContextDataEx(hActiveThread, registerindex, (ULONG_PTR)newValue);
+        SetContextDataEx(hActiveThread, (TitanRegister)registerindex, (ULONG_PTR)newValue);
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
     }
@@ -565,7 +565,7 @@ bool cbInstrMovdqu(int argc, char* argv[])
             dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
             return false;
         }
-        SetContextDataEx(hActiveThread, registerindex[1], (ULONG_PTR)&registers.regcontext.ZmmRegisters[registerindex[0]].Low.Low);
+        SetContextDataEx(hActiveThread, (TitanRegister)registerindex[1], (ULONG_PTR)&registers.regcontext.ZmmRegisters[registerindex[0]].Low.Low);
         GuiUpdateAllViews(); //refresh disassembly/dump/etc
         return true;
     }

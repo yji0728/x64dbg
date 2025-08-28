@@ -1210,7 +1210,7 @@ bool cbSetModuleBreakpoints(const BREAKPOINT* bp)
     {
         duint size = 0;
         MemFindBaseAddr(bp->addr, &size);
-        if(!SetMemoryBPXEx(bp->addr, size, bp->titantype, !bp->singleshoot, cbMemoryBreakpoint))
+        if(!SetMemoryBPXEx(bp->addr, size, (TitanMemoryBreakpointType)bp->titantype, !bp->singleshoot, cbMemoryBreakpoint))
             dprintf(QT_TRANSLATE_NOOP("DBG", "Could not set memory breakpoint %p! (SetMemoryBPXEx)\n"), bp->addr);
     }
     break;
