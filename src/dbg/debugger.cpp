@@ -777,7 +777,7 @@ static char getConditionValue(const std::string & expression)
 void cbPauseBreakpoint()
 {
     dputs(QT_TRANSLATE_NOOP("DBG", "paused!"));
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     DeleteBPX(CIP);
     DebugUpdateGuiSetStateAsync(CIP, paused);
@@ -837,7 +837,7 @@ static void handleBreakCondition(const BREAKPOINT & bp, const void* ExceptionAdd
 
 static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = nullptr)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
 
     //handle process cookie retrieval
@@ -1075,25 +1075,25 @@ static void cbGenericBreakpoint(BP_TYPE bptype, const void* ExceptionAddress = n
 
 void cbUserBreakpoint()
 {
-    lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
+    lastExceptionInfo = GetDebugData()->u.Exception;
     cbGenericBreakpoint(BPNORMAL);
 }
 
 void cbHardwareBreakpoint(const void* ExceptionAddress)
 {
-    lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
+    lastExceptionInfo = GetDebugData()->u.Exception;
     cbGenericBreakpoint(BPHARDWARE, ExceptionAddress);
 }
 
 void cbMemoryBreakpoint(const void* ExceptionAddress)
 {
-    lastExceptionInfo = ((DEBUG_EVENT*)GetDebugData())->u.Exception;
+    lastExceptionInfo = GetDebugData()->u.Exception;
     cbGenericBreakpoint(BPMEMORY, ExceptionAddress);
 }
 
 void cbRunToUserCodeBreakpoint(const void* ExceptionAddress)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto CIP = GetContextDataEx(hActiveThread, UE_CIP);
     dprintf(QT_TRANSLATE_NOOP("DBG", "User code reached at %s"), SymGetSymbolicName(CIP).c_str());
     // lock
@@ -1290,7 +1290,7 @@ void DebugSetBreakpoints()
 
 void cbStep()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
     if(bAbortStepping || !stepRepeat || !--stepRepeat)
     {
@@ -1321,7 +1321,7 @@ static void cbRtrFinalStep(bool checkRepeat)
 {
     if(bAbortStepping || !checkRepeat || !stepRepeat || !--stepRepeat)
     {
-        hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+        hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
         duint CIP = GetContextDataEx(hActiveThread, UE_CIP);
         // Trace record
         dbgtraceexecute(CIP);
@@ -1341,7 +1341,7 @@ static void cbRtrFinalStep(bool checkRepeat)
 
 void cbRtrStep()
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     unsigned char data[MAX_DISASM_BUFFER];
     memset(data, 0x90, sizeof(data));
     duint cip = GetContextDataEx(hActiveThread, UE_CIP);
@@ -1447,13 +1447,13 @@ static void __forceinline cbTraceUniversalConditionalStep(duint cip, STEPFUNCTIO
 
 void cbTraceXConditionalStep(STEPFUNCTION stepFunction, TITANCBSTEP callback)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     cbTraceUniversalConditionalStep(GetContextDataEx(hActiveThread, UE_CIP), stepFunction, callback, false);
 }
 
 static void cbTraceXXTraceRecordStep(STEPFUNCTION stepFunction, bool bInto, TITANCBSTEP callback)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     auto cip = GetContextDataEx(hActiveThread, UE_CIP);
     auto forceBreakTrace = TraceRecord.getTraceRecordType(cip) != TraceRecordManager::TraceRecordNone && (TraceRecord.getHitCount(cip) == 0) ^ bInto;
     cbTraceUniversalConditionalStep(cip, stepFunction, callback, forceBreakTrace);
@@ -1585,7 +1585,7 @@ static void cbCreateProcess(CREATE_PROCESS_DEBUG_INFO* CreateProcessInfo)
     threadInfo.lpThreadLocalBase = CreateProcessInfo->lpThreadLocalBase;
     ThreadCreate(&threadInfo);
 
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
 
     //call plugin callback
     PLUG_CB_CREATEPROCESS callbackInfo;
@@ -1663,7 +1663,7 @@ static void cbExitProcess(EXIT_PROCESS_DEBUG_INFO* ExitProcess)
 static void cbCreateThread(CREATE_THREAD_DEBUG_INFO* CreateThread)
 {
     ThreadCreate(CreateThread); //update thread list
-    DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    DWORD dwThreadId = GetDebugData()->dwThreadId;
     hActiveThread = ThreadGetHandle(dwThreadId);
 
     PLUG_CB_CREATETHREAD callbackInfo;
@@ -1739,7 +1739,7 @@ static void cbExitThread(EXIT_THREAD_DEBUG_INFO* ExitThread)
         else
             dputs(QT_TRANSLATE_NOOP("DBG", "No threads left to switch to (bug?)"));
     }
-    DWORD dwThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    DWORD dwThreadId = GetDebugData()->dwThreadId;
     PLUG_CB_EXITTHREAD callbackInfo;
     callbackInfo.ExitThread = ExitThread;
     callbackInfo.dwThreadId = dwThreadId;
@@ -1781,7 +1781,7 @@ static DWORD WINAPI cbInitializationScriptThread(void*)
 
 static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakpoint event shouldn't be dropped
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
 
     //Get on top of things
     SetForegroundWindow(GuiGetWindowHandle());
@@ -1830,7 +1830,7 @@ static void cbSystemBreakpoint(const void* ExceptionData) // TODO: System breakp
 
 static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     void* base = LoadDll->lpBaseOfDll;
 
     char DLLDebugFileName[MAX_PATH] = "";
@@ -1998,7 +1998,7 @@ static void cbLoadDll(LOAD_DLL_DEBUG_INFO* LoadDll)
 
 static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     PLUG_CB_UNLOADDLL callbackInfo;
     callbackInfo.UnloadDll = UnloadDll;
     plugincbcall(CB_UNLOADDLL, &callbackInfo);
@@ -2038,7 +2038,7 @@ static void cbUnloadDll(UNLOAD_DLL_DEBUG_INFO* UnloadDll)
 
 static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     PLUG_CB_OUTPUTDEBUGSTRING callbackInfo;
     callbackInfo.DebugString = DebugString;
     plugincbcall(CB_OUTPUTDEBUGSTRING, &callbackInfo);
@@ -2081,7 +2081,7 @@ static void cbOutputDebugString(OUTPUT_DEBUG_STRING_INFO* DebugString)
 
 static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 {
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     PLUG_CB_EXCEPTION callbackInfo;
     callbackInfo.Exception = ExceptionData;
     unsigned int ExceptionCode = ExceptionData->ExceptionRecord.ExceptionCode;
@@ -2104,7 +2104,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
         THREADNAME_INFO nameInfo; //has no valid local pointers
         memcpy(&nameInfo, ExceptionData->ExceptionRecord.ExceptionInformation, sizeof(THREADNAME_INFO));
         if(nameInfo.dwThreadID == -1) //current thread
-            nameInfo.dwThreadID = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+            nameInfo.dwThreadID = GetDebugData()->dwThreadId;
         if(nameInfo.dwType == 0x1000 && nameInfo.dwFlags == 0 && ThreadIsValid(nameInfo.dwThreadID)) //passed basic checks
         {
             Memory<char*> ThreadName(MAX_THREAD_NAME_SIZE, "cbException:ThreadName");
@@ -2169,7 +2169,7 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
 static void cbDebugEvent(DEBUG_EVENT* DebugEvent)
 {
     nextContinueStatus = DBG_EXCEPTION_NOT_HANDLED;
-    hActiveThread = ThreadGetHandle(((DEBUG_EVENT*)GetDebugData())->dwThreadId);
+    hActiveThread = ThreadGetHandle(GetDebugData()->dwThreadId);
     InterlockedIncrement((volatile long*)&DbgEvents);
     PLUG_CB_DEBUGEVENT debugEventInfo;
     debugEventInfo.DebugEvent = DebugEvent;

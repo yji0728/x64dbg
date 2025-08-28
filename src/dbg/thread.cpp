@@ -19,7 +19,7 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
 
     curInfo.ThreadNumber = ThreadGetCount();
     curInfo.Handle = INVALID_HANDLE_VALUE;
-    curInfo.ThreadId = ((DEBUG_EVENT*)GetDebugData())->dwThreadId;
+    curInfo.ThreadId = GetDebugData()->dwThreadId;
     curInfo.ThreadStartAddress = (duint)CreateThread->lpStartAddress;
     curInfo.ThreadLocalBase = (duint)CreateThread->lpThreadLocalBase;
 
