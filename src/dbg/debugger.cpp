@@ -2810,10 +2810,10 @@ static void debugLoopFunction(INIT_STRUCT* init)
         strncpy_s(szDebuggeePath, init->exe.c_str(), _TRUNCATE);
     }
 
-    pDebuggedEntry = GetPE32DataW(gInitExe.c_str(), 0, UE_OEP);
+    pDebuggedEntry = init->entryPointRva;
     bEntryIsInMzHeader = pDebuggedEntry == 0 || pDebuggedEntry == 1;
 
-    bFileIsDll = IsFileDLLW(StringUtils::Utf8ToUtf16(szDebuggeePath).c_str(), 0);
+    bFileIsDll = init->isDll;
     if(bFileIsDll && !FileExists(szDllLoaderPath))
     {
         dprintf(QT_TRANSLATE_NOOP("DBG", "Error debugging DLL (loaddll.exe not found)\n"));
