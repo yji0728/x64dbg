@@ -2348,7 +2348,7 @@ static void setfpuvalue(const char* string, duint value)
         registerindex = atoi(string + 1);
         if(registerindex < 8)
         {
-            TITAN_ENGINE_CONTEXT_AVX512_t context;
+            TITAN_ENGINE_CONTEXT_AVX512_t context = {};
             if(!GetAVX512Context(hActiveThread, &context))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));
@@ -2366,7 +2366,7 @@ static void setfpuvalue(const char* string, duint value)
         registerindex = atoi(string + STRLEN_USING_SIZEOF(ZMM_PRE_FIELD_STRING));
         if(registerindex < ArchValue(8, 32))
         {
-            TITAN_ENGINE_CONTEXT_AVX512_t context;
+            TITAN_ENGINE_CONTEXT_AVX512_t context = {};
             if(!GetAVX512Context(hActiveThread, &context))
             {
                 dputs(QT_TRANSLATE_NOOP("DBG", "Failed to read register context..."));

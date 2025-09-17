@@ -710,14 +710,14 @@ static void TranslateTitanFpuRegisters(const x87FPURegister_t titanFpu[8], X87FP
 
 extern "C" DLL_EXPORT bool _dbg_getregdump(REGDUMP_AVX512* regdump)
 {
-    if(!DbgIsDebugging())
+    if(!DbgIsDebugging() || !hActiveThread)
     {
         memset(regdump, 0, sizeof(REGDUMP_AVX512));
         return true;
     }
 
-    TITAN_ENGINE_CONTEXT_t titcontext;
-    TITAN_ENGINE_CONTEXT_AVX512_t titcontext_AVX512;
+    TITAN_ENGINE_CONTEXT_t titcontext = {};
+    TITAN_ENGINE_CONTEXT_AVX512_t titcontext_AVX512 = {};
     if(!GetFullContextDataEx(hActiveThread, &titcontext))
         return false;
     memset(&titcontext_AVX512, 0, sizeof(titcontext_AVX512));
