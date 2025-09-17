@@ -2801,7 +2801,7 @@ static void debugLoopFunction(INIT_STRUCT* init)
     {
         gInitExe = StringUtils::Utf8ToUtf16(szDebuggeePath);
         static PROCESS_INFORMATION pi_attached;
-        memset(&pi_attached, 0, sizeof(pi_attached));
+        pi_attached = {};
         fdProcessInfo = &pi_attached;
     }
     else
@@ -2838,11 +2838,12 @@ static void debugLoopFunction(INIT_STRUCT* init)
         gInitDir = StringUtils::Utf8ToUtf16(init->currentfolder);
 
         //start the process
+        PROCESS_INFORMATION* processInfo = nullptr;
         if(bFileIsDll)
-            fdProcessInfo = (PROCESS_INFORMATION*)InitDLLDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
+            processInfo = InitDLLDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
         else
-            fdProcessInfo = (PROCESS_INFORMATION*)InitDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
-        if(!fdProcessInfo)
+            processInfo = InitDebugW(gInitExe.c_str(), gInitCmd.c_str(), gInitDir.c_str());
+        if(processInfo == nullptr)
         {
             auto lastError = GetLastError();
             auto isElevated = BridgeIsProcessElevated();
@@ -2855,7 +2856,6 @@ static void debugLoopFunction(INIT_STRUCT* init)
                 wchar_t wszProgramPath[MAX_PATH] = L"";
                 if(answer == IDYES && dbgrestartadmin())
                 {
-                    fdProcessInfo = &g_pi;
                     GuiCloseApplication();
                     return;
                 }
@@ -2867,10 +2867,10 @@ static void debugLoopFunction(INIT_STRUCT* init)
                 //https://blogs.techsmith.com/inside-techsmith/devcorner-debug-uiaccess
                 error += ", uiAccess=\"true\"";
             }
-            fdProcessInfo = &g_pi;
             dprintf(QT_TRANSLATE_NOOP("DBG", "Error starting process (CreateProcess, %s)!\n"), error.c_str());
             return;
         }
+        fdProcessInfo = processInfo;
 
         //check for WOW64
         BOOL wow64 = false, mewow64 = false;
