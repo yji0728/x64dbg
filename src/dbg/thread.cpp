@@ -18,13 +18,10 @@ void ThreadCreate(CREATE_THREAD_DEBUG_INFO* CreateThread)
     memset(&curInfo, 0, sizeof(THREADINFO));
 
     curInfo.ThreadNumber = ThreadGetCount();
-    curInfo.Handle = INVALID_HANDLE_VALUE;
+    curInfo.Handle = CreateThread->hThread;
     curInfo.ThreadId = GetDebugData()->dwThreadId;
     curInfo.ThreadStartAddress = (duint)CreateThread->lpStartAddress;
     curInfo.ThreadLocalBase = (duint)CreateThread->lpThreadLocalBase;
-
-    // Duplicate the debug thread handle -> thread handle
-    DuplicateHandle(GetCurrentProcess(), CreateThread->hThread, GetCurrentProcess(), &curInfo.Handle, 0, FALSE, DUPLICATE_SAME_ACCESS);
 
     typedef HRESULT(WINAPI * GETTHREADDESCRIPTION)(HANDLE hThread, PWSTR * ppszThreadDescription);
     static GETTHREADDESCRIPTION _GetThreadDescription = (GETTHREADDESCRIPTION)GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "GetThreadDescription");
@@ -60,7 +57,6 @@ void ThreadExit(DWORD ThreadId)
 
     if(itr != threadList.end())
     {
-        CloseHandle(itr->second.Handle);
         threadList.erase(itr);
     }
 
@@ -71,10 +67,6 @@ void ThreadExit(DWORD ThreadId)
 void ThreadClear()
 {
     EXCLUSIVE_ACQUIRE(LockThreads);
-
-    // Close all handles first
-    for(auto & itr : threadList)
-        CloseHandle(itr.second.Handle);
 
     // Empty the array
     threadList.clear();
@@ -303,10 +295,8 @@ HANDLE ThreadGetHandle(DWORD ThreadId)
 {
     SHARED_ACQUIRE(LockThreads);
 
-    if(threadList.find(ThreadId) != threadList.end())
-        return threadList[ThreadId].Handle;
-
-    return nullptr;
+    auto found = threadList.find(ThreadId);
+    return found != threadList.end() ? found->second.Handle : nullptr;
 }
 
 DWORD ThreadGetId(HANDLE Thread)
