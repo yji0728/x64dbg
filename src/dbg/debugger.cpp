@@ -2099,6 +2099,8 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             return;
         }
     }
+
+    const ExceptionFilter & filter = dbggetexceptionfilter(ExceptionCode);
     if(ExceptionData->ExceptionRecord.ExceptionCode == MS_VC_EXCEPTION) //SetThreadName exception
     {
         THREADNAME_INFO nameInfo; //has no valid local pointers
@@ -2111,14 +2113,19 @@ static void cbException(EXCEPTION_DEBUG_INFO* ExceptionData)
             if(MemRead((duint)nameInfo.szName, ThreadName(), MAX_THREAD_NAME_SIZE - 1))
             {
                 String ThreadNameEscaped = StringUtils::Escape(ThreadName());
-                dprintf(QT_TRANSLATE_NOOP("DBG", "SetThreadName exception on %p (%X, \"%s\")\n"), addr, nameInfo.dwThreadID, ThreadNameEscaped.c_str());
                 ThreadSetName(nameInfo.dwThreadID, ThreadNameEscaped.c_str());
+                if(filter.logException)
+                    dprintf(QT_TRANSLATE_NOOP("DBG", "SetThreadName exception on %p (%X, \"%s\")\n"), addr, nameInfo.dwThreadID, ThreadNameEscaped.c_str());
                 if(!settingboolget("Events", "ThreadNameSet", false))
+                {
+                    // Allow hiding the SetThreadName exception from the debuggee if the user wants to
+                    if(filter.handledBy == ExceptionHandledBy::Debugger)
+                        dbgsetcontinuestatus(DBG_CONTINUE);
                     return;
+                }
             }
         }
     }
-    const ExceptionFilter & filter = dbggetexceptionfilter(ExceptionCode);
     if(bVerboseExceptionLogging && filter.logException)
         DbgCmdExecDirect("exinfo"); //show extended exception information
     auto exceptionName = ExceptionCodeToName(ExceptionCode);
