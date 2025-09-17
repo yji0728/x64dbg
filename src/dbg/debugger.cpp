@@ -2750,7 +2750,7 @@ void dbgstartscriptthread(CBPLUGINSCRIPT cbScript)
     CloseHandle(CreateThread(0, 0, scriptThread, (LPVOID)cbScript, 0, 0));
 }
 
-static void* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder)
+static PROCESS_INFORMATION* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLine, const wchar_t* szCurrentFolder)
 {
     WString loaderFilename = StringUtils::sprintf(L"\\DLLLoader" ArchValue(L"32", L"64") L"_%04X.exe", GetTickCount() & 0xFFFF);
     WString debuggeeLoaderPath = szFileName;
@@ -2772,7 +2772,7 @@ static void* InitDLLDebugW(const wchar_t* szFileName, const wchar_t* szCommandLi
         }
     }
 
-    PPROCESS_INFORMATION ReturnValue = (PPROCESS_INFORMATION)InitDebugW(debuggeeLoaderPath.c_str(), szCommandLine, szCurrentFolder);
+    PPROCESS_INFORMATION ReturnValue = InitDebugW(debuggeeLoaderPath.c_str(), szCommandLine, szCurrentFolder);
     WString mappingName = StringUtils::sprintf(L"Local\\szLibraryName%X", ReturnValue->dwProcessId);
     const auto mappingSize = 512;
     DebugDLLFileMapping = CreateFileMappingW(INVALID_HANDLE_VALUE, 0, PAGE_READWRITE, 0, mappingSize * sizeof(wchar_t), mappingName.c_str());
@@ -2907,16 +2907,16 @@ static void debugLoopFunction(INIT_STRUCT* init)
     init->event = nullptr;
 
     //set custom handlers
-    SetCustomHandler(UE_CH_CREATEPROCESS, (TITANCBCH)cbCreateProcess);
-    SetCustomHandler(UE_CH_EXITPROCESS, (TITANCBCH)cbExitProcess);
-    SetCustomHandler(UE_CH_CREATETHREAD, (TITANCBCH)cbCreateThread);
-    SetCustomHandler(UE_CH_EXITTHREAD, (TITANCBCH)cbExitThread);
-    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (TITANCBCH)cbSystemBreakpoint);
-    SetCustomHandler(UE_CH_LOADDLL, (TITANCBCH)cbLoadDll);
-    SetCustomHandler(UE_CH_UNLOADDLL, (TITANCBCH)cbUnloadDll);
-    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (TITANCBCH)cbOutputDebugString);
-    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (TITANCBCH)cbException);
-    SetCustomHandler(UE_CH_DEBUGEVENT, (TITANCBCH)cbDebugEvent);
+    SetCustomHandler(UE_CH_CREATEPROCESS, (TITANCALLBACKARG)cbCreateProcess);
+    SetCustomHandler(UE_CH_EXITPROCESS, (TITANCALLBACKARG)cbExitProcess);
+    SetCustomHandler(UE_CH_CREATETHREAD, (TITANCALLBACKARG)cbCreateThread);
+    SetCustomHandler(UE_CH_EXITTHREAD, (TITANCALLBACKARG)cbExitThread);
+    SetCustomHandler(UE_CH_SYSTEMBREAKPOINT, (TITANCALLBACKARG)cbSystemBreakpoint);
+    SetCustomHandler(UE_CH_LOADDLL, (TITANCALLBACKARG)cbLoadDll);
+    SetCustomHandler(UE_CH_UNLOADDLL, (TITANCALLBACKARG)cbUnloadDll);
+    SetCustomHandler(UE_CH_OUTPUTDEBUGSTRING, (TITANCALLBACKARG)cbOutputDebugString);
+    SetCustomHandler(UE_CH_UNHANDLEDEXCEPTION, (TITANCALLBACKARG)cbException);
+    SetCustomHandler(UE_CH_DEBUGEVENT, (TITANCALLBACKARG)cbDebugEvent);
 
     //inform GUI we started without problems
     GuiSetDebugState(initialized);
