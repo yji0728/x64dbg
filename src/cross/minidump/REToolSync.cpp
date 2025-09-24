@@ -2,6 +2,7 @@
 #include <httplib.h>
 #include <QDebug>
 #include <QJsonDocument>
+#include <QJsonValue>
 
 REToolSync::REToolSync(QObject* parent)
 {
