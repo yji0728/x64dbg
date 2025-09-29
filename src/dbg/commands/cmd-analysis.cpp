@@ -16,6 +16,7 @@
 #include "exception.h"
 #include "TraceRecord.h"
 #include "dbghelp_safe.h"
+#include "AutoAnalysisReportPass.h"
 
 bool cbInstrAnalyse(int argc, char* argv[])
 {
@@ -504,5 +505,112 @@ bool cbInstrTraceexecute(int argc, char* argv[])
     if(!valfromstring(argv[1], &addr, false))
         return false;
     dbgtraceexecute(addr);
+    return true;
+}
+
+bool cbInstrAutoreport(int argc, char* argv[])
+{
+    // Get target address and module
+    duint address;
+    if(argc < 2)
+    {
+        // Use current selection or module
+        SELECTIONDATA sel;
+        GuiSelectionGet(GUI_DISASSEMBLY, &sel);
+        address = sel.start;
+    }
+    else if(!valfromstring(argv[1], &address))
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid address"));
+        return false;
+    }
+    
+    // Find module boundaries
+    duint size = 0;
+    duint base = MemFindBaseAddr(address, &size);
+    if(!base)
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid module"));
+        return false;
+    }
+    
+    // Get output format and filename
+    std::string format = "text";  // default
+    std::string filename;
+    
+    if(argc >= 3)
+        format = argv[2];
+    if(argc >= 4)
+        filename = argv[3];
+    
+    // Validate format
+    if(format != "text" && format != "json" && format != "html")
+    {
+        dputs(QT_TRANSLATE_NOOP("DBG", "Invalid format. Use: text, json, or html"));
+        return false;
+    }
+    
+    // Generate default filename if not provided
+    if(filename.empty())
+    {
+        char moduleText[MAX_MODULE_SIZE] = "";
+        if(DbgGetModuleAt(address, moduleText))
+        {
+            filename = std::string(moduleText) + "_report." + format;
+        }
+        else
+        {
+            filename = "analysis_report." + format;
+        }
+    }
+    
+    try
+    {
+        // Create a minimal basic block array for analysis
+        // The AutoAnalysisReportPass will work with whatever basic blocks are available
+        BBlockArray blocks;
+        
+        // Create and run automated analysis
+        AutoAnalysisReportPass autoAnalysis(base, base + size, blocks);
+        
+        dputs(QT_TRANSLATE_NOOP("DBG", "Starting automated analysis..."));
+        
+        if(!autoAnalysis.Analyse())
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Analysis failed"));
+            return false;
+        }
+        
+        // Export report
+        bool success = false;
+        if(format == "json")
+            success = autoAnalysis.ExportToJson(filename);
+        else if(format == "html")
+            success = autoAnalysis.ExportToHtml(filename);
+        else
+            success = autoAnalysis.ExportToText(filename);
+            
+        if(success)
+        {
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Report exported to: %s\n"), filename.c_str());
+            
+            const auto& report = autoAnalysis.GetReport();
+            dprintf(QT_TRANSLATE_NOOP("DBG", "Analysis Summary:\n"));
+            dprintf(QT_TRANSLATE_NOOP("DBG", "  Strings: %zu\n"), report.totalStrings);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "  IOCs: %zu\n"), report.totalIOCs);
+            dprintf(QT_TRANSLATE_NOOP("DBG", "  Function Calls: %zu\n"), report.totalCalls);
+        }
+        else
+        {
+            dputs(QT_TRANSLATE_NOOP("DBG", "Failed to export report"));
+            return false;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        dprintf(QT_TRANSLATE_NOOP("DBG", "Analysis error: %s\n"), e.what());
+        return false;
+    }
+    
     return true;
 }
