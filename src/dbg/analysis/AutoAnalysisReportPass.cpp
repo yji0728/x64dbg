@@ -3,14 +3,17 @@
 #include "console.h"
 #include "memory.h"
 #include "module.h"
+#include "debugger.h"
 #include "disasm_helper.h"
 #include "symbolinfo.h"
+#include "label.h"
 #include <regex>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
 #include <algorithm>
 #include <cctype>
+#include <ctime>
 
 AutoAnalysisReportPass::AutoAnalysisReportPass(duint VirtualStart, duint VirtualEnd, BBlockArray & MainBlocks)
     : AnalysisPass(VirtualStart, VirtualEnd, MainBlocks)
@@ -78,9 +81,12 @@ void AutoAnalysisReportPass::AnalyzeStrings()
         if(!data)
             continue;
             
+        // Ensure we don't read beyond our data bounds
+        size_t maxReadLength = std::min(MAX_STRING_LENGTH, (size_t)(m_VirtualEnd - addr));
+        
         // Check for ASCII strings
         bool isWide = false;
-        if(IsStringCandidate(data, MAX_STRING_LENGTH, isWide))
+        if(IsStringCandidate(data, maxReadLength, isWide))
         {
             std::string value;
             size_t length = 0;
@@ -89,7 +95,7 @@ void AutoAnalysisReportPass::AnalyzeStrings()
             {
                 // Wide string (UTF-16)
                 const wchar_t* wstr = reinterpret_cast<const wchar_t*>(data);
-                for(size_t i = 0; i < MAX_STRING_LENGTH / 2 && wstr[i] != 0; i++)
+                for(size_t i = 0; i < maxReadLength / 2 && wstr[i] != 0; i++)
                 {
                     if(wstr[i] < 128)  // Basic ASCII range
                         value += static_cast<char>(wstr[i]);
@@ -102,7 +108,7 @@ void AutoAnalysisReportPass::AnalyzeStrings()
             {
                 // ASCII string
                 const char* str = reinterpret_cast<const char*>(data);
-                for(size_t i = 0; i < MAX_STRING_LENGTH && str[i] != 0; i++)
+                for(size_t i = 0; i < maxReadLength && str[i] != 0; i++)
                 {
                     value += str[i];
                     length = i + 1;
@@ -325,6 +331,7 @@ bool AutoAnalysisReportPass::IsPrintableString(const std::string& str) const
 
 bool AutoAnalysisReportPass::IsIOCCandidate(const std::string& str, std::string& type) const
 {
+    // Check in order of priority/specificity
     if(IsIPAddress(str))
     {
         type = "ip";
@@ -335,11 +342,6 @@ bool AutoAnalysisReportPass::IsIOCCandidate(const std::string& str, std::string&
         type = "url";
         return true;
     }
-    if(IsDomainName(str))
-    {
-        type = "domain";
-        return true;
-    }
     if(IsRegistryPath(str))
     {
         type = "registry";
@@ -348,6 +350,11 @@ bool AutoAnalysisReportPass::IsIOCCandidate(const std::string& str, std::string&
     if(IsFilePath(str))
     {
         type = "file_path";
+        return true;
+    }
+    if(IsDomainName(str))
+    {
+        type = "domain";
         return true;
     }
     
