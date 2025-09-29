@@ -1,6 +1,9 @@
 name: Cross
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 # Automatically cancel previous runs of this workflow on the same branch
 concurrency:
@@ -8,14 +11,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cmake:
+  cross:
     # Skip building pull requests from the same repository
     if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository }}
     strategy:
       fail-fast: false
       matrix:
-        platform: [windows-latest, ubuntu-latest]
-    runs-on: ${{ matrix.platform }}
+        include:
+          - os: windows-latest
+            arch: x64
+          - os: ubuntu-latest
+            arch: x64
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,8 +30,17 @@ jobs:
           submodules: recursive
           fetch-depth: 1
 
-      - name: Visual Studio Development Environment
+      - name: Set up MSVC (Windows only)
+        if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Install dependencies (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build mesa-common-dev libgl1-mesa-dev libxkbcommon-x11-0 libx11-xcb1 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 libxcb-render-util0 libxcb-shape0 libxcb-sync1 libxcb-xfixes0 libxcb-xinerama0 libxcb-xkb1 xkb-data libxcb-cursor0 libdbus-1-3
 
       - name: Install Qt
         uses: jurplel/install-qt-action@d325aaf2a8baeeda41ad0b5d39f84a6af9bcf005 # v4.3.0
@@ -32,8 +48,31 @@ jobs:
           cache: true
           modules: qtwebsockets
 
-      - name: Build
+      - name: Configure
+        shell: bash
         run: |
           cd src/cross
           cmake -B build -G Ninja -DCMAKE_UNITY_BUILD=ON
-          cmake --build build
+
+      - name: Build
+        shell: bash
+        run: |
+          cd src/cross
+          cmake --build build --config Release
+
+      - name: Package artifacts
+        shell: bash
+        run: |
+          mkdir -p artifacts
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            7z a artifacts/cross-${{ matrix.arch }}-windows.zip ./src/cross/build/*
+          else
+            tar -czf artifacts/cross-${{ matrix.arch }}-linux.tar.gz -C ./src/cross/build .
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-${{ matrix.arch }}-${{ runner.os }}
+          path: artifacts/*
+          if-no-files-found: warn

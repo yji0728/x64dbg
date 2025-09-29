@@ -6,6 +6,10 @@
 
 [![Discord](https://img.shields.io/badge/chat-on%20Discord-green.svg)](https://discord.x64dbg.com) [![Slack](https://img.shields.io/badge/chat-on%20Slack-red.svg)](https://slack.x64dbg.com) [![Gitter](https://img.shields.io/badge/chat-on%20Gitter-lightseagreen.svg)](https://gitter.im/x64dbg/x64dbg) [![Matrix](https://img.shields.io/badge/chat-on%20Matrix-yellowgreen.svg)](https://riot.im/app/#/room/#x64dbg:matrix.org) [![IRC](https://img.shields.io/badge/chat-on%20IRC-purple.svg)](https://web.libera.chat/#x64dbg)
 
+[![Build](https://github.com/yji0728/x64dbg/actions/workflows/build.yml/badge.svg)](https://github.com/yji0728/x64dbg/actions/workflows/build.yml)
+[![Cross](https://github.com/yji0728/x64dbg/actions/workflows/cross.yml/badge.svg)](https://github.com/yji0728/x64dbg/actions/workflows/cross.yml)
+[![CodeQL](https://github.com/yji0728/x64dbg/actions/workflows/codeql.yml/badge.svg)](https://github.com/yji0728/x64dbg/actions/workflows/codeql.yml)
+
 An open-source binary debugger for Windows, aimed at malware analysis and reverse engineering of executables you do not have the source code for. There are many features available and a comprehensive [plugin system](https://plugins.x64dbg.com) to add your own. You can find more information on the [blog](https://x64dbg.com/blog)!
 
 ## Screenshots
@@ -24,6 +28,14 @@ An open-source binary debugger for Windows, aimed at malware analysis and revers
 3. You can now run `x32\x32dbg.exe` if you want to debug a 32-bit executable or `x64\x64dbg.exe` to debug a 64-bit executable! If you are unsure you can always run `x96dbg.exe` and choose your architecture there.
 
 You can also [compile](https://github.com/x64dbg/x64dbg/wiki/Compiling-the-whole-project) x64dbg yourself with a few easy steps!
+
+## CI / Automation
+
+- Build: Windows에서 x64/x86 릴리즈 빌드를 수행하고 스냅샷/심볼/Plugin SDK를 아카이브하며, 태그 푸시 시 GitHub Release에 자동 업로드합니다. 수동 실행(workflow_dispatch)도 지원합니다.
+- Cross: Windows/Linux에서 교차 유틸리티를 빌드합니다. Windows는 MSVC, Linux는 CMake+Ninja 및 필요한 패키지를 자동 설치합니다. 빌드 산출물은 아티팩트로 업로드됩니다.
+- Security (CodeQL): C/C++ 소스에 대해 보안/품질 분석을 자동 수행하고, 결과는 GitHub Security 탭에 표시됩니다. 정기 스케줄과 수동 실행을 지원합니다.
+
+빠른 링크: [Build Workflow](.github/workflows/build.yml) · [Cross Workflow](.github/workflows/cross.yml) · [CodeQL Workflow](.github/workflows/codeql.yml)
 
 ## Sponsors
 

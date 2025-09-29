@@ -1,6 +1,13 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
 
 # Automatically cancel previous runs of this workflow on the same branch
 concurrency:
@@ -100,35 +107,70 @@ jobs:
           $timestamp = Get-Date (Get-Date).ToUniversalTime() -Format "yyyy-MM-dd_HH-mm"
           echo "timestamp=$timestamp" >> $env:GITHUB_ENV
 
+      - name: Archive Release Outputs
+        shell: pwsh
+        run: |
+          $packagesDir = Join-Path $PWD 'release\\packages'
+          New-Item -ItemType Directory -Path $packagesDir -Force | Out-Null
+          $timestamp = "${{ env.timestamp }}"
+          $snapshot = Join-Path $packagesDir "x64dbg-snapshot_$timestamp.zip"
+          $symbols = Join-Path $packagesDir "x64dbg-symbols_$timestamp.zip"
+          $sdk = Join-Path $packagesDir "x64dbg-pluginsdk_$timestamp.zip"
+          tar.exe -a -c -f $snapshot -C release release
+          tar.exe -a -c -f $symbols -C release pdb
+          tar.exe -a -c -f $sdk -C release pluginsdk
+          Copy-Item .\release\commithash.txt (Join-Path $packagesDir "commithash.txt") -Force
+
       - name: Upload Snapshot
         uses: actions/upload-artifact@v4
         with:
           name: snapshot_${{ env.timestamp }}
           path: |
-            release/pluginsdk
-            release/release
-            release/commithash.txt
+            release/packages/x64dbg-snapshot_${{ env.timestamp }}.zip
+            release/packages/commithash.txt
           if-no-files-found: error
           include-hidden-files: true
-          compression-level: 9
+          compression-level: 0
 
       - name: Upload Symbols
         uses: actions/upload-artifact@v4
         with:
           name: symbols-snapshot_${{ env.timestamp }}
           path: |
-            release/pdb
-            release/commithash.txt
+            release/packages/x64dbg-symbols_${{ env.timestamp }}.zip
+            release/packages/commithash.txt
           if-no-files-found: error
           include-hidden-files: true
-          compression-level: 9
+          compression-level: 0
 
       - name: Upload Plugin SDK
         uses: actions/upload-artifact@v4
         with:
           name: x64dbg-pluginsdk
           path: |
-            release/pluginsdk
+            release/packages/x64dbg-pluginsdk_${{ env.timestamp }}.zip
           if-no-files-found: error
           include-hidden-files: true
-          compression-level: 9
+          compression-level: 0
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $notes = "Automated snapshot generated on ${{ env.timestamp }} (UTC)."
+          $assets = @(
+            "release/packages/x64dbg-snapshot_${{ env.timestamp }}.zip",
+            "release/packages/x64dbg-symbols_${{ env.timestamp }}.zip",
+            "release/packages/x64dbg-pluginsdk_${{ env.timestamp }}.zip",
+            "release/packages/commithash.txt"
+          )
+          gh release view $tag 1>$null 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $assets --clobber
+          }
+          else {
+            gh release create $tag $assets --verify-tag --title "x64dbg $tag" --notes $notes
+          }
