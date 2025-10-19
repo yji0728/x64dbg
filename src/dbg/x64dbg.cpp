@@ -377,6 +377,7 @@ static void registercommands()
     dbgcmdnew("symload,loadsym", cbDebugLoadSymbol, true); //load symbols
     dbgcmdnew("symunload,unloadsym", cbDebugUnloadSymbol, true); //unload symbols
     dbgcmdnew("imageinfo,modimageinfo", cbInstrImageinfo, true); //print module image information
+    dbgcmdnew("autoreport,malwarereport", cbInstrAutoreport, true); //automated malware analysis report
     dbgcmdnew("GetRelocSize,grs", cbInstrGetRelocSize, true); //get relocation table size
     dbgcmdnew("exhandlers", cbInstrExhandlers, true); //enumerate exception handlers
     dbgcmdnew("exinfo", cbInstrExinfo, true); //dump last exception information
