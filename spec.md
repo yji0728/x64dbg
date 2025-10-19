@@ -1,126 +1,316 @@
-### **x64dbg용 고급 언패킹 플로그인 "Advanced Reconstructor" 통합 상세 스펙**
+## 가상화 기반 패커의 메모리 레벨 OEP 탐지 방법 연구
 
-이 문서는 기존의 두 상세 스펙을 통합하고, 최신 제안 사항을 반영하여 x64dbg용 고급 언패킹 플러그인 "Advanced Reconstructor"의 최종 통합 스펙을 정의합니다.
+### 1. 가상화 패커의 실행 메커니즘 분석
 
----
+#### 1.1 가상화 패커의 한계점
+```
+[VM 바이트코드] → [VM 핸들러] → [실제 CPU 명령어] → [실행]
+                                    ↑
+                              이 시점에서 탐지 가능
+```
 
-### **1. 프로젝트 개요**
+가상화 패커도 결국 다음과 같은 한계를 가집니다:
+- **최종 실행은 실제 CPU 명령어**: VM이 아무리 복잡해도 결국 실제 CPU가 이해할 수 있는 명령어로 변환되어야 함
+- **API 호출 필수**: Windows API는 VM 코드가 아닌 실제 주소를 통해 호출되어야 함
+- **메모리 접근 패턴**: 원본 프로그램의 데이터 구조와 메모리 접근 패턴은 유지됨
 
-*   **플러그인 명칭:** Advanced Reconstructor (가칭: Advanced Unpacker for x64dbg)
-*   **핵심 목표:**
-    *   다양한 패킹/난독화 기법이 적용된 Windows PE(x64 중심, x86 옵션) 파일의 분석을 지원하고, 반자동 및 자동 언패킹 워크플로우를 제공합니다.
-    *   OEP 탐지, IAT 재구성, 섹션 복원 등 언패킹 필수 단계를 **안정성 중심**으로 구현합니다.
-    *   안티-디버깅 기법에 대한 방어 옵션을 투명하게 제공하고, 다중 레이어 패킹 해제를 지원합니다.
-    *   전문가용 인터페이스와 초보자를 위한 "Unpack Wizard"를 모두 제공하여 사용자 편의성을 극대화합니다.
-*   **사용 전제:** 본 플러그인은 합법적인 리버스 엔지니어링(보안 연구, 교육, 본인 소유 소프트웨어 분석 등)을 전제로 하며, DRM 회피나 무단 크래킹 등 불법적 목적의 사용을 엄격히 금지합니다.
+### 2. 고급 OEP 탐지 전략
 
-### **2. 비범위(Non-goals) 및 한계**
+#### 2.1 JIT(Just-In-Time) 코드 생성 추적
+```cpp
+class JITCodeTracker {
+private:
+    std::map<DWORD_PTR, CodeBlock> jit_blocks;
+    std::set<DWORD_PTR> execution_flow;
+    
+public:
+    void OnMemoryAllocation(DWORD_PTR address, SIZE_T size, DWORD protect) {
+        if (protect & PAGE_EXECUTE_READWRITE || protect & PAGE_EXECUTE_READ) {
+            // 실행 가능한 메모리 할당 감지
+            MonitorMemoryBlock(address, size);
+        }
+    }
+    
+    void OnCodeExecution(DWORD_PTR address) {
+        // 새로운 메모리 영역에서 코드 실행 감지
+        if (!IsKnownVMHandler(address)) {
+            // VM 핸들러가 아닌 새로운 코드 실행
+            AnalyzePotentialOEP(address);
+        }
+    }
+};
+```
 
-*   **가상화 기반 보호:** VMProtect, Themida 등 고도의 가상화(VM) 기술에 대한 완전 자동 디버추얼라이제이션은 지원하지 않습니다. 대신, VM 진입점 탐지 등 보조 분석 기능을 제공하는 것을 목표로 합니다.
-*   **커널 모드 대상:** 사용자 모드 디버거의 한계로 인해 커널 모드 드라이버나 루트킷 언패킹은 지원하지 않습니다.
-*   **불법적 사용:** 불법 복제, DRM 우회, 무단 크래킹을 위한 기능은 일절 제공하지 않습니다.
+#### 2.2 마이크로 실행 패턴 분석 (Micro-Execution Pattern Analysis)
+```cpp
+struct ExecutionPattern {
+    DWORD_PTR address;
+    std::vector<BYTE> instructions;
+    std::vector<DWORD_PTR> api_calls;
+    DWORD execution_count;
+    double entropy_change;
+};
 
-### **3. 시스템 요구사항**
+class MicroPatternAnalyzer {
+public:
+    void AnalyzeExecutionTrace() {
+        // 짧은 시간 동안의 실행 패턴 수집
+        std::vector<ExecutionPattern> patterns;
+        
+        // VM 핸들러의 반복적 패턴 vs 실제 애플리케이션 코드 구분
+        for (auto& pattern : patterns) {
+            if (IsApplicationPattern(pattern)) {
+                // 높은 API 호출 밀도
+                // 낮은 반복성
+                // 의미있는 제어 흐름
+                MarkAsPotentialOEP(pattern.address);
+            }
+        }
+    }
+    
+private:
+    bool IsApplicationPattern(const ExecutionPattern& pattern) {
+        // API 호출 빈도가 높음
+        if (pattern.api_calls.size() > threshold_api_calls) return true;
+        
+        // VM 핸들러와 다른 실행 패턴
+        if (!MatchesVMHandlerSignature(pattern)) return true;
+        
+        // 스택 프레임 설정 패턴 감지
+        if (DetectsFunctionPrologue(pattern)) return true;
+        
+        return false;
+    }
+};
+```
 
-*   **대상 OS:** Windows 10/11 (x64) (Windows 7 이상에서 호환되나 일부 API 추적에 제약이 있을 수 있음)
-*   **대상 디버거:** 최신 버전의 x64dbg (x64 빌드 필수, x86 빌드 옵션)
-*   **권장 라이브러리:**
-    *   **PE 파서/빌더:** LIEF 또는 pe-parse (정적 링크)
-    *   **디스어셈블리:** x64dbg 내장 엔진을 기본으로 하되, 필요시 Capstone/Zydis 보조 활용
-    *   **시그니처 엔진:** YARA (패커 탐지용, 업데이트 가능)
-*   **선택적 의존 플러그인:** Scylla (IAT 재구성), ScyllaHide (안티-디버깅 우회)와 연동 기능 제공
+### 3. 계층적 메모리 추상화 분석
 
-### **4. 아키텍처 개요**
+#### 3.1 메모리 접근 그래프 구축
+```cpp
+class MemoryAccessGraph {
+private:
+    struct MemoryRegion {
+        DWORD_PTR base;
+        SIZE_T size;
+        std::set<DWORD_PTR> accessors;  // 이 영역에 접근한 코드 주소
+        std::map<DWORD_PTR, AccessType> access_patterns;
+    };
+    
+public:
+    void BuildAccessGraph() {
+        // 메모리 접근 패턴을 그래프로 구축
+        // VM 핸들러: 제한된 메모리 영역에 반복 접근
+        // 실제 코드: 다양한 메모리 영역에 의미있는 패턴으로 접근
+    }
+    
+    DWORD_PTR FindTransitionPoint() {
+        // VM 영역에서 애플리케이션 영역으로 전환되는 지점 탐지
+        for (auto& region : memory_regions) {
+            if (IsTransitionFromVMToApp(region)) {
+                return region.first_app_access;
+            }
+        }
+    }
+};
+```
 
-플러그인은 디버그 이벤트 기반의 **상태 머신(State Machine)**으로 동작하며, 다음과 같은 6대 핵심 모듈로 구성됩니다.
+### 4. API 호출 체인 재구성
 
-1.  **패킹 감지 엔진 (PackDetector):** 정적/동적 분석으로 패킹 여부와 유형을 식별합니다.
-2.  **런타임 계측기 (RuntimeInstrumentor):** 메모리 접근, API 호출 등을 추적하고 안티-안티디버깅을 완화합니다.
-3.  **OEP 탐지 엔진 (OEPFinder):** 다양한 휴리스틱을 기반으로 OEP 후보를 찾고 신뢰도 점수를 부여합니다.
-4.  **덤퍼 및 재구성기 (Dumper & Rebuilder):** 메모리를 덤프하고 유효한 PE 파일로 재구성합니다.
-5.  **다중 레이어 제어기 (MultiLayerController):** 여러 겹으로 패킹된 경우 반복적인 언패킹을 지원합니다.
-6.  **UI 및 스크립팅 프레임워크:** 사용자 인터페이스, 리포팅, 자동화 기능을 담당합니다.
+#### 4.1 간접 API 호출 추적
+```cpp
+class IndirectAPITracker {
+private:
+    struct APICallContext {
+        DWORD_PTR call_site;      // API를 호출한 위치
+        DWORD_PTR return_address; // 리턴 주소
+        std::string api_name;
+        std::vector<DWORD_PTR> parameters;
+        DWORD_PTR stack_frame;
+    };
+    
+public:
+    void TrackAPICall(DWORD_PTR address) {
+        // VM이 API를 호출할 때의 컨텍스트 수집
+        APICallContext context = CaptureContext();
+        
+        // 실제 애플리케이션 코드의 리턴 주소 추적
+        DWORD_PTR real_caller = FindRealCaller(context);
+        
+        if (!IsVMHandler(real_caller)) {
+            // VM 핸들러가 아닌 곳으로 리턴 = OEP 후보
+            potential_oep_addresses.insert(real_caller);
+        }
+    }
+    
+private:
+    DWORD_PTR FindRealCaller(const APICallContext& context) {
+        // 스택을 역추적하여 VM 레이어를 건너뛴 실제 호출자 찾기
+        std::vector<DWORD_PTR> call_stack = UnwindStack(context.stack_frame);
+        
+        for (auto addr : call_stack) {
+            if (!IsInVMSpace(addr) && IsExecutableCode(addr)) {
+                return addr;
+            }
+        }
+        return 0;
+    }
+};
+```
 
----
+### 5. 동적 코드 재구성 탐지
 
-### **5. 주요 컴포넌트 상세 명세**
+#### 5.1 코드 캐시 분석
+```cpp
+class CodeCacheAnalyzer {
+private:
+    struct CodeCache {
+        DWORD_PTR address;
+        std::vector<BYTE> code;
+        DWORD execution_count;
+        std::set<DWORD_PTR> jump_targets;
+    };
+    
+public:
+    void AnalyzeDynamicCode() {
+        // VM이 생성한 코드 조각들을 수집
+        std::map<DWORD_PTR, CodeCache> code_caches;
+        
+        // 코드 조각들 간의 제어 흐름 분석
+        for (auto& cache : code_caches) {
+            if (HasCompleteControlFlow(cache.second)) {
+                // 완전한 함수 형태를 갖춘 코드 발견
+                AnalyzeAsOEPCandidate(cache.first);
+            }
+        }
+    }
+    
+    bool HasCompleteControlFlow(const CodeCache& cache) {
+        // 함수 프롤로그/에필로그 존재
+        // 의미있는 제어 흐름 구조
+        // API 호출 패턴
+        return DetectFunctionStructure(cache);
+    }
+};
+```
 
-#### **5.1. PackDetector (패킹 감지 엔진)**
+### 6. 하이브리드 탐지 알고리즘
 
-*   **정적 분석:** PE 헤더 이상 징후, 높은 엔트로피를 가진 섹션, 비정상적인 섹션 플래그(예: `W`+`X`), 빈약한 임포트 테이블, TLS 콜백 유무 등을 분석합니다.
-*   **동적 분석:** 실행 초반의 메모리 할당 및 권한 변경 패턴(고엔트로피 영역에 실행 권한 부여), `W`->`X` 전이 등을 감시합니다.
-*   **시그니처 기반 탐지:** YARA 룰과 바이너리 패턴 매칭을 통해 UPX, ASPack 등 알려진 패커의 스텁 코드를 식별합니다. (시그니처 DB는 외부 파일로 업데이트 가능)
-*   **결과:** 분석 결과를 종합하여 **"패킹 의심 점수"**, **"추정 패커 유형"**, **"권장 분석 워크플로우"**를 UI에 제시합니다.
+#### 6.1 다층 분석 프레임워크
+```cpp
+class HybridOEPDetector {
+private:
+    JITCodeTracker jit_tracker;
+    MicroPatternAnalyzer pattern_analyzer;
+    MemoryAccessGraph memory_graph;
+    IndirectAPITracker api_tracker;
+    CodeCacheAnalyzer cache_analyzer;
+    
+public:
+    DWORD_PTR DetectOEP() {
+        // 1단계: VM 실행 영역 식별
+        IdentifyVMSpace();
+        
+        // 2단계: 병렬 분석 시작
+        std::thread t1([this]() { jit_tracker.StartTracking(); });
+        std::thread t2([this]() { pattern_analyzer.StartAnalysis(); });
+        std::thread t3([this]() { api_tracker.StartTracking(); });
+        
+        // 3단계: 실행 진행
+        RunUntilStableState();
+        
+        // 4단계: 결과 종합
+        auto candidates = CollectCandidates();
+        
+        // 5단계: 점수 기반 평가
+        return EvaluateCandidates(candidates);
+    }
+    
+private:
+    DWORD_PTR EvaluateCandidates(const std::vector<OEPCandidate>& candidates) {
+        for (auto& candidate : candidates) {
+            int score = 0;
+            
+            // API 호출 밀도
+            score += CalculateAPICallDensity(candidate) * 30;
+            
+            // VM 영역과의 거리
+            score += CalculateDistanceFromVM(candidate) * 20;
+            
+            // 코드 구조 완성도
+            score += AnalyzeCodeStructure(candidate) * 25;
+            
+            // 메모리 접근 패턴
+            score += AnalyzeMemoryPattern(candidate) * 25;
+            
+            candidate.score = score;
+        }
+        
+        // 가장 높은 점수의 후보 반환
+        return GetHighestScoreCandidate(candidates);
+    }
+};
+```
 
-#### **5.2. RuntimeInstrumentor (런타임 계측기)**
+### 7. 실험적 접근: 시맨틱 실행 추적
 
-*   **API 트레이스:** 메모리, 로더, 프로세스 관련 핵심 API 호출을 후킹하고 파라미터/리턴값을 기록합니다.
-    *   **주요 추적 대상:** `VirtualAlloc`, `VirtualProtect`, `WriteProcessMemory`, `LoadLibrary`, `GetProcAddress`, `NtUnmapViewOfSection` 등.
-*   **메모리 W->X 전이 감시:** `PAGE_GUARD` 또는 메모리 브레이크포인트를 활용하여 데이터 영역이 코드로 변환되는(쓰기 가능 → 실행 가능) 시점을 정확히 포착합니다.
-*   **안티-안티디버깅 완화 (선택적):**
-    *   `IsDebuggerPresent`, `CheckRemoteDebuggerPresent`, `NtQueryInformationProcess` 등 디버거 탐지 API의 반환 값을 조작합니다.
-    *   `RDTSC`, `GetTickCount` 등 타이밍 체크 API의 결과 값을 정규화합니다.
-    *   **기본값은 비활성화**이며, 사용자가 각 항목을 명시적으로 활성화할 때만 동작하고 모든 조작 내역을 로그에 투명하게 기록합니다.
+#### 7.1 의미론적 명령어 그룹화
+```cpp
+class SemanticExecutionTracer {
+private:
+    enum SemanticOperation {
+        MEMORY_ALLOCATION,
+        FILE_OPERATION,
+        REGISTRY_ACCESS,
+        NETWORK_OPERATION,
+        PROCESS_CREATION,
+        UI_OPERATION
+    };
+    
+public:
+    void TraceSemanticOperations() {
+        // VM 레이어를 통과하더라도 의미론적 작업은 유지됨
+        std::vector<SemanticOperation> operations;
+        
+        // 일반적인 프로그램 시작 패턴 감지
+        if (DetectsProgramInitPattern(operations)) {
+            // 메모리 할당 → 설정 로드 → UI 초기화 등
+            MarkTransitionPoint();
+        }
+    }
+};
+```
 
-#### **5.3. OEPFinder (OEP 탐지 엔진)**
+### 8. 실전 적용 예제
 
-*   **복합 휴리스틱:** 여러 단서를 종합하여 OEP 후보를 탐지하고 신뢰도를 평가합니다.
-    *   **제어 흐름:** 패커 스텁 섹션에서 원본 코드 섹션(예: `.text`)으로의 장거리 점프(Far Jump) 또는 호출(Call)을 추적합니다.
-    *   **메모리 및 권한:** `W->X`로 변경된 메모리 영역에서 실행되는 첫 번째 유의미한 코드 블록을 탐지합니다.
-    *   **코드 특징:** 정상적인 함수 프롤로그(x64 `push rbp; mov rbp, rsp` 등) 패턴이 나타나고, 명령어 밀도가 정상화되는 지점을 식별합니다.
-    *   **임포트 사용성:** `GetProcAddress` 호출이 급감하고, IAT를 통한 API 호출이 안정화되는 시점을 분석합니다.
-*   **후보 스코어링:** 각 휴리스틱 신호에 가중치를 부여하여 OEP 후보들의 **신뢰도 점수**를 계산하고, 가장 유력한 후보 목록을 사용자에게 제시합니다.
+#### 8.1 VMProtect 3.x 대응
+```cpp
+void HandleVMProtect3() {
+    // VMProtect의 특징적인 VM 진입 패턴 식별
+    auto vm_entry = FindVMEntry();
+    
+    // VM 핸들러 테이블 위치 파악
+    auto handler_table = LocateHandlerTable(vm_entry);
+    
+    // 핸들러 실행 추적하며 실제 작업 분리
+    while (IsInVM()) {
+        auto current_handler = GetCurrentHandler();
+        
+        // VMEXIT 명령어 패턴 감지
+        if (IsVMExitPattern(current_handler)) {
+            // VM 탈출 지점 = 잠재적 OEP
+            auto exit_point = GetVMExitTarget();
+            VerifyAsOEP(exit_point);
+        }
+    }
+}
+```
 
-#### **5.4. Dumper & Rebuilder (덤퍼 및 재구성기)**
+### 9. 구현 시 주의사항
 
-*   **지능형 메모리 덤프:** OEP 도달 시점에서 메인 모듈의 메모리 맵을 기준으로 필요한 섹션만 선별적으로 덤프합니다.
-*   **PE 파일 재구성:**
-    *   **헤더 수정:** `AddressOfEntryPoint`를 탐지된 OEP로 설정하고, 섹션 정렬/크기/특성을 수정합니다.
-    *   **IAT 재구성:**
-        1.  **동적 추적 우선:** `LoadLibrary`/`GetProcAddress` 등의 호출을 추적하여 생성된 `(주소 → API 이름)` 맵을 기반으로 IAT를 재구성합니다.
-        2.  **정적 스캔 보완:** 덤프된 메모리에서 API 주소 패턴을 스캔하고 코드 참조를 분석하여 추가 임포트를 찾습니다.
-        3.  **외부 연동:** 재구성 실패 또는 불확실한 경우, Scylla 플러그인을 호출하는 옵션을 제공합니다.
-    *   **데이터 디렉터리 복원:** Relocation Table, TLS Callbacks, Resource Directory, Load Config Directory 등의 복원을 시도하고, PE 헤더의 관련 포인터를 수정합니다.
-*   **산출물:** 재빌드된 PE 파일(`_unpacked.exe`)과 상세 분석 리포트(JSON/HTML 형식)를 생성합니다.
+1. **성능 최적화**: 모든 명령어를 추적하면 속도가 매우 느려지므로, 샘플링과 휴리스틱을 적절히 조합
+2. **오탐 방지**: VM 핸들러 자체를 OEP로 오인하지 않도록 충분한 검증 단계 필요
+3. **메모리 관리**: 대량의 실행 추적 데이터를 효율적으로 관리
+4. **안정성**: VM 실행 중 개입으로 인한 크래시 방지
 
-#### **5.5. MultiLayerController (다중 레이어 제어기)**
-
-*   **반복 언패킹 지원:** "덤프 → 재실행 → 분석" 워크플로우를 자동화하여 여러 겹으로 패킹된 파일을 단계적으로 언패킹합니다. (최대 반복 횟수 및 타임아웃 설정 가능)
-
----
-
-### **6. 사용자 인터페이스(UI) 및 워크플로우**
-
-*   **Dock 패널:** x64dbg에 전용 Dock 창을 제공하며, 여러 탭으로 구성됩니다.
-    *   **Overview:** 패킹 분석 요약(의심도, 추정 패커), 현재 분석 단계, 권장 조치를 표시합니다.
-    *   **Events Timeline:** API 호출, 메모리 권한 변경, 예외 등 주요 이벤트를 시간순으로 보여주며, 필터링 및 검색 기능을 제공합니다.
-    *   **OEP Candidates:** 탐지된 OEP 후보 목록을 신뢰도 점수 및 근거와 함께 표시하며, "Jump & Verify" 버튼으로 즉시 해당 주소로 이동할 수 있습니다.
-    *   **Rebuild Panel:** 재구성된 IAT 목록(확실/불확실 구분), 데이터 디렉터리 상태, 수정 제안 등을 보여줍니다.
-*   **"Unpack Wizard" (마법사 모드):** 초보자를 위해 분석 모드 선택 → 안티-안티디버깅 옵션 설정 → OEP 후보 검증 → 덤프 및 재구성 순서로 과정을 단계별로 안내합니다.
-*   **예상 워크플로우 (반자동 모드):**
-    1.  사용자가 패킹된 파일을 로드하고 플러그인 패널에서 **[Start Auto-Analysis]**를 클릭합니다.
-    2.  플러그인이 런타임 계측을 시작하고, OEP 후보를 탐지하면 자동으로 실행을 멈춥니다.
-    3.  사용자는 "OEP Candidates" 탭에서 최상위 후보를 검토하고 확정합니다.
-    4.  **[Rebuild IAT]**와 **[Dump & Rebuild PE]** 버튼을 차례로 클릭합니다.
-    5.  언패킹된 파일과 상세 분석 리포트가 지정된 경로에 생성됩니다.
-
-### **7. 확장성 및 리포팅**
-
-*   **스크립팅 및 자동화:** x64dbg의 커맨드 시스템과 연동하여 `au.start`, `au.dump` 등 명령어를 지원하고, 특정 이벤트 발생 시 사용자 스크립트를 실행할 수 있는 트리거를 제공합니다.
-*   **규칙 엔진:** 사용자가 YARA 룰이나 JSON 형식의 간단한 규칙을 추가하여 패커 탐지 및 OEP 탐지 휴리스틱을 확장할 수 있습니다.
-*   **상세 리포팅:** 분석 완료 후, 패킹 의심 근거, 추적된 이벤트 요약, OEP 선택 근거, IAT 재구성 결과, 수동 조치 권고 사항 등을 포함한 HTML/JSON 보고서를 생성합니다.
-
-### **8. 릴리스 로드맵 (제안)**
-
-*   **MVP (Minimum Viable Product):**
-    *   정적/동적 패킹 감지, 핵심 API(VirtualProtect, GetProcAddress 등) 트레이스 기능
-    *   기본 OEP 휴리스틱 및 수동 선택 기능
-    *   메모리 덤프, 동적 추적 기반의 IAT 재구성 및 기본 리포트 생성
-*   **Beta:**
-    *   W->X 전이 추적 고도화, TLS/Reloc/Resource 복원 기능 추가
-    *   다중 레이어 언패킹 루프 및 "Unpack Wizard" UI 구현
-    *   Scylla/ScyllaHide 연동 옵션 제공, 시그니처 DB 업데이트 기능
-*   **v1.0:**
-    *   OEP 신뢰도 스코어링 알고리즘 개선
-    *   사용자 정의 규칙 및 스크립팅 기능 안정화
-    *   성능 최적화 및 상세 리포트 기능 완성
+이러한 방법들을 조합하면 가상화 기반 패커에서도 높은 확률로 실제 OEP를 찾을 수 있습니다. 핵심은 VM 레이어의 특성을 이해하고, 그것과 실제 애플리케이션 코드를 구분하는 다양한 지표를 활용하는 것입니다.
