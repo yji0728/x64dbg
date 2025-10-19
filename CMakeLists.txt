@@ -74,6 +74,16 @@ endif()
 add_subdirectory("src/gui/Src/ThirdPartyLibs/md4c")
 set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
 
+# Subdirectory: src/plugins/AdvancedReconstructor
+set(CMKR_CMAKE_FOLDER ${CMAKE_FOLDER})
+if(CMAKE_FOLDER)
+	set(CMAKE_FOLDER "${CMAKE_FOLDER}/src/plugins/AdvancedReconstructor")
+else()
+	set(CMAKE_FOLDER "src/plugins/AdvancedReconstructor")
+endif()
+add_subdirectory("src/plugins/AdvancedReconstructor")
+set(CMAKE_FOLDER ${CMKR_CMAKE_FOLDER})
+
 # Target: bridge
 set(bridge_SOURCES
 	cmake.toml
