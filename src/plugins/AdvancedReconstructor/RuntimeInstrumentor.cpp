@@ -77,31 +77,10 @@ namespace RuntimeInstrumentor
     {
         // Check if this memory region changed from writable to executable
         // This is a key indicator of unpacking
+        // MVP: Placeholder implementation
         
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQueryEx(DbgGetProcessHandle(), (LPCVOID)address, &mbi, sizeof(mbi)))
-        {
-            DWORD oldProtect = 0;
-            if (memoryProtections.find(address) != memoryProtections.end())
-            {
-                oldProtect = memoryProtections[address];
-            }
-            
-            // Check for W->X transition
-            bool wasWritable = (oldProtect & (PAGE_READWRITE | PAGE_WRITECOPY | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) != 0;
-            bool isExecutable = (mbi.Protect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) != 0;
-            bool wasNotExecutable = (oldProtect & (PAGE_EXECUTE | PAGE_EXECUTE_READ | PAGE_EXECUTE_READWRITE | PAGE_EXECUTE_WRITECOPY)) == 0;
-            
-            if (wasWritable && wasNotExecutable && isExecutable)
-            {
-                _plugin_logprintf("[RuntimeInstrumentor] W->X transition detected at 0x%p\n", (void*)address);
-                writableToExecutable.push_back(address);
-                return true;
-            }
-            
-            // Update stored protection
-            memoryProtections[address] = mbi.Protect;
-        }
+        _plugin_logputs("[RuntimeInstrumentor] CheckMemoryTransition: MVP placeholder");
+        _plugin_logputs("[RuntimeInstrumentor] Full version will track W->X transitions");
         
         return false;
     }
