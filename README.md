@@ -105,3 +105,4 @@ You can find an exhaustive list of GitHub contributors [here](https://github.com
 - [JustMagic](https://github.com/JustasMasiulis)
 
 Without the help of many people and other open-source projects, it would not have been possible to make x64dbg what it is today, thank you!
+# x64dbg
